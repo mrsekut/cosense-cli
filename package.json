@@ -1,0 +1,21 @@
+{
+  "name": "cosense-cli",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "cosense": "index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@cosense/std": "^0.31.0",
+    "@cosense/types": "^0.11.7",
+    "md2sb": "^6.0.3",
+    "option-t": "^56.0.0"
+  }
+}

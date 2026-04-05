@@ -1,0 +1,22 @@
+import type { ParsedArgs } from "../../lib/args.ts";
+import { getString } from "../../lib/args.ts";
+import type { Format } from "../../lib/output.ts";
+import { output, success, error } from "../../lib/output.ts";
+import { resolveOptions } from "../../lib/config.ts";
+import { searchPages } from "../../lib/cosense.ts";
+
+export async function pageSearch(parsed: ParsedArgs, format: Format): Promise<void> {
+  const query = parsed.commands.slice(2).join(" ");
+  if (!query) {
+    output(error("MISSING_ARGUMENT", "Usage: cosense page search <query>"), format);
+    return;
+  }
+
+  const opts = await resolveOptions({
+    profile: getString(parsed.flags, "profile"),
+    project: getString(parsed.flags, "project"),
+  });
+
+  const data = await searchPages(opts.project, query, opts.sid);
+  output(success(data), format);
+}
