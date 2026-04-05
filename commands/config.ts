@@ -13,11 +13,11 @@ export async function configCommand(parsed: ParsedArgs): Promise<void> {
         process.exit(1);
       }
       const sid = getString(parsed.flags, "sid");
-      if (!sid) {
-        console.error("Usage: cosense config set-profile <project-name> --sid <sid>");
+      const project = getString(parsed.flags, "project");
+      if (!sid || !project) {
+        console.error("Both --sid and --project are required.");
         process.exit(1);
       }
-      const project = getString(parsed.flags, "project") ?? name;
       const config = await loadConfig();
       config.profiles[name] = { sid, defaultProject: project };
       await saveConfig(config);
