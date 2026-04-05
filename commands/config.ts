@@ -1,31 +1,35 @@
-import type { ParsedArgs } from "../lib/args.ts";
-import { getString } from "../lib/args.ts";
-import { loadConfig, saveConfig } from "../lib/config.ts";
+import type { ParsedArgs } from '../lib/args.ts';
+import { getString } from '../lib/args.ts';
+import { loadConfig, saveConfig } from '../lib/config.ts';
 
 export async function configCommand(parsed: ParsedArgs): Promise<void> {
   const subcommand = parsed.commands[1];
 
   switch (subcommand) {
-    case "set-profile": {
+    case 'set-profile': {
       const name = parsed.commands[2];
       if (!name) {
-        console.error("Usage: cosense config set-profile <name> --sid <sid> --project <project>");
+        console.error(
+          'Usage: cosense config set-profile <name> --sid <sid> --project <project>',
+        );
         process.exit(1);
       }
-      const sid = getString(parsed.flags, "sid");
-      const project = getString(parsed.flags, "project");
+      const sid = getString(parsed.flags, 'sid');
+      const project = getString(parsed.flags, 'project');
       if (!sid || !project) {
-        console.error("Both --sid and --project are required.");
+        console.error('Both --sid and --project are required.');
         process.exit(1);
       }
       const config = await loadConfig();
       config.profiles[name] = { sid, defaultProject: project };
       await saveConfig(config);
-      console.log(JSON.stringify({ ok: true, data: { profile: name, project } }));
+      console.log(
+        JSON.stringify({ ok: true, data: { profile: name, project } }),
+      );
       break;
     }
 
-    case "list-profiles": {
+    case 'list-profiles': {
       const config = await loadConfig();
       const profiles = Object.entries(config.profiles).map(([name, p]) => ({
         name,
@@ -36,10 +40,10 @@ export async function configCommand(parsed: ParsedArgs): Promise<void> {
       break;
     }
 
-    case "remove-profile": {
+    case 'remove-profile': {
       const name = parsed.commands[2];
       if (!name) {
-        console.error("Usage: cosense config remove-profile <name>");
+        console.error('Usage: cosense config remove-profile <name>');
         process.exit(1);
       }
       const config = await loadConfig();
@@ -50,7 +54,9 @@ export async function configCommand(parsed: ParsedArgs): Promise<void> {
     }
 
     default:
-      console.error("Usage: cosense config <set-profile|list-profiles|remove-profile>");
+      console.error(
+        'Usage: cosense config <set-profile|list-profiles|remove-profile>',
+      );
       process.exit(1);
   }
 }

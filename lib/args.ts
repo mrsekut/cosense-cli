@@ -10,10 +10,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
-    if (arg.startsWith("--")) {
+    if (arg.startsWith('--')) {
       const key = arg.slice(2);
       const next = args[i + 1];
-      if (next && !next.startsWith("--")) {
+      if (next && !next.startsWith('--')) {
         flags[key] = next;
         i++;
       } else {
@@ -27,16 +27,25 @@ export function parseArgs(argv: string[]): ParsedArgs {
   return { commands, flags };
 }
 
-export function getString(flags: Record<string, string | true>, key: string): string | undefined {
+export function getString(
+  flags: Record<string, string | true>,
+  key: string,
+): string | undefined {
   const val = flags[key];
-  return typeof val === "string" ? val : undefined;
+  return typeof val === 'string' ? val : undefined;
 }
 
-export function getNumber(flags: Record<string, string | true>, key: string): number | undefined {
+export function getNumber(
+  flags: Record<string, string | true>,
+  key: string,
+): number | undefined {
   const val = getString(flags, key);
   return val !== undefined ? Number(val) : undefined;
 }
 
-export function getBool(flags: Record<string, string | true>, key: string): boolean {
+export function getBool(
+  flags: Record<string, string | true>,
+  key: string,
+): boolean {
   return flags[key] !== undefined;
 }

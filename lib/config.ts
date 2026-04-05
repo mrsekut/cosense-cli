@@ -1,5 +1,5 @@
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 
 export interface Profile {
   sid: string;
@@ -10,8 +10,8 @@ export interface Config {
   profiles: Record<string, Profile>;
 }
 
-const CONFIG_DIR = join(homedir(), ".config", "cosense-cli");
-const CONFIG_PATH = join(CONFIG_DIR, "config.json");
+const CONFIG_DIR = join(homedir(), '.config', 'cosense-cli');
+const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
 
 export async function loadConfig(): Promise<Config> {
   try {
@@ -23,9 +23,9 @@ export async function loadConfig(): Promise<Config> {
 }
 
 export async function saveConfig(config: Config): Promise<void> {
-  const { mkdirSync } = await import("node:fs");
+  const { mkdirSync } = await import('node:fs');
   mkdirSync(CONFIG_DIR, { recursive: true });
-  await Bun.write(CONFIG_PATH, JSON.stringify(config, null, 2) + "\n");
+  await Bun.write(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n');
 }
 
 export async function getProfile(name: string): Promise<Profile | undefined> {
@@ -38,7 +38,7 @@ export function resolveOptions(args: {
   project?: string;
 }): Promise<{ sid?: string; project: string }> {
   return (async () => {
-    const profileName = args.profile ?? "default";
+    const profileName = args.profile ?? 'default';
     const profile = await getProfile(profileName);
     const project = args.project ?? profile?.defaultProject;
     if (!project) {

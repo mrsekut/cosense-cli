@@ -1,11 +1,7 @@
-import {
-  getPage,
-  listPages,
-  searchForPages,
-} from "@cosense/std/rest";
-import { patch } from "@cosense/std/websocket";
-import { isErr, unwrapErr, unwrapOk } from "option-t/plain_result";
-import type { BaseOptions, ListPagesOption } from "@cosense/std/rest";
+import { getPage, listPages, searchForPages } from '@cosense/std/rest';
+import { patch } from '@cosense/std/websocket';
+import { isErr, unwrapErr, unwrapOk } from 'option-t/plain_result';
+import type { BaseOptions, ListPagesOption } from '@cosense/std/rest';
 
 export type { BaseOptions };
 
@@ -13,11 +9,7 @@ function baseOpts(sid?: string): BaseOptions {
   return sid ? { sid } : {};
 }
 
-export async function fetchPage(
-  project: string,
-  title: string,
-  sid?: string,
-) {
+export async function fetchPage(project: string, title: string, sid?: string) {
   const result = await getPage(project, title, baseOpts(sid));
   if (isErr(result)) {
     throw toError(unwrapErr(result));
@@ -25,7 +17,7 @@ export async function fetchPage(
   const page = unwrapOk(result);
   return {
     title: page.title,
-    lines: page.lines.map((l) => l.text),
+    lines: page.lines.map(l => l.text),
     descriptions: page.descriptions,
     links: page.links,
     relatedPages: page.relatedPages,
@@ -38,7 +30,7 @@ export async function fetchPageList(
 ) {
   const opts: ListPagesOption = {
     ...baseOpts(options.sid),
-    sort: (options.sort as ListPagesOption["sort"]) ?? "updated",
+    sort: (options.sort as ListPagesOption['sort']) ?? 'updated',
     limit: options.limit ?? 100,
     skip: options.skip ?? 0,
   };
@@ -49,7 +41,7 @@ export async function fetchPageList(
   const data = unwrapOk(result);
   return {
     count: data.count,
-    pages: data.pages.map((p) => ({
+    pages: data.pages.map(p => ({
       title: p.title,
       descriptions: p.descriptions,
       updated: p.updated,
@@ -72,7 +64,7 @@ export async function searchPages(
   return {
     query: data.searchQuery,
     count: data.count,
-    pages: data.pages.map((p) => ({
+    pages: data.pages.map(p => ({
       title: p.title,
       words: p.words,
       lines: p.lines,
@@ -86,17 +78,22 @@ export async function appendLines(
   newLines: string[],
   options: { after?: string; sid?: string },
 ) {
-  const result = await patch(project, title, (lines) => {
-    const texts = lines.map((l) => l.text);
-    if (options.after) {
-      const idx = texts.findIndex((t) => t.includes(options.after!));
-      if (idx >= 0) {
-        texts.splice(idx + 1, 0, ...newLines);
-        return texts;
+  const result = await patch(
+    project,
+    title,
+    lines => {
+      const texts = lines.map(l => l.text);
+      if (options.after) {
+        const idx = texts.findIndex(t => t.includes(options.after!));
+        if (idx >= 0) {
+          texts.splice(idx + 1, 0, ...newLines);
+          return texts;
+        }
       }
-    }
-    return [...texts, ...newLines];
-  }, baseOpts(options.sid));
+      return [...texts, ...newLines];
+    },
+    baseOpts(options.sid),
+  );
 
   if (isErr(result)) {
     throw toError(unwrapErr(result));
@@ -120,9 +117,9 @@ export async function createPage(
 
 function toError(err: unknown): Error {
   if (err instanceof Error) return err;
-  if (typeof err === "object" && err !== null && "name" in err) {
+  if (typeof err === 'object' && err !== null && 'name' in err) {
     const e = err as { name: string; message?: string };
-    return new Error(`${e.name}: ${e.message ?? "Unknown error"}`);
+    return new Error(`${e.name}: ${e.message ?? 'Unknown error'}`);
   }
   return new Error(String(err));
 }

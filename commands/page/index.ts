@@ -1,32 +1,41 @@
-import type { ParsedArgs } from "../../lib/args.ts";
-import type { Format } from "../../lib/output.ts";
-import { output, error } from "../../lib/output.ts";
-import { pageGet } from "./get.ts";
-import { pageList } from "./list.ts";
-import { pageSearch } from "./search.ts";
-import { pageCreate } from "./create.ts";
-import { pageAppend } from "./append.ts";
+import type { ParsedArgs } from '../../lib/args.ts';
+import type { Format } from '../../lib/output.ts';
+import { output, error } from '../../lib/output.ts';
+import { pageGet } from './get.ts';
+import { pageList } from './list.ts';
+import { pageSearch } from './search.ts';
+import { pageCreate } from './create.ts';
+import { pageAppend } from './append.ts';
 
-export async function pageCommand(parsed: ParsedArgs, format: Format): Promise<void> {
+export async function pageCommand(
+  parsed: ParsedArgs,
+  format: Format,
+): Promise<void> {
   const subcommand = parsed.commands[1];
 
   switch (subcommand) {
-    case "get":
+    case 'get':
       await pageGet(parsed, format);
       break;
-    case "list":
+    case 'list':
       await pageList(parsed, format);
       break;
-    case "search":
+    case 'search':
       await pageSearch(parsed, format);
       break;
-    case "create":
+    case 'create':
       await pageCreate(parsed, format);
       break;
-    case "append":
+    case 'append':
       await pageAppend(parsed, format);
       break;
     default:
-      output(error("UNKNOWN_SUBCOMMAND", "Usage: cosense page <get|list|search|create|append>"), format);
+      output(
+        error(
+          'UNKNOWN_SUBCOMMAND',
+          'Usage: cosense page <get|list|search|create|append>',
+        ),
+        format,
+      );
   }
 }

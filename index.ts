@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 
-import { parseArgs, getString } from "./lib/args.ts";
-import { output, error, type Format } from "./lib/output.ts";
-import { configCommand } from "./commands/config.ts";
-import { pageCommand } from "./commands/page/index.ts";
-import { exportCommand } from "./commands/export.ts";
-import { linksCommand } from "./commands/links.ts";
+import { parseArgs, getString } from './lib/args.ts';
+import { output, error, type Format } from './lib/output.ts';
+import { configCommand } from './commands/config.ts';
+import { pageCommand } from './commands/page/index.ts';
+import { exportCommand } from './commands/export.ts';
+import { linksCommand } from './commands/links.ts';
 
 const HELP = `cosense-cli - Cosense CLI for AI agents
 
@@ -26,34 +26,34 @@ Global Options:
 
 async function main() {
   const parsed = parseArgs(process.argv);
-  const format = (getString(parsed.flags, "format") ?? "json") as Format;
+  const format = (getString(parsed.flags, 'format') ?? 'json') as Format;
   const command = parsed.commands[0];
 
-  if (!command || parsed.flags["help"] === true) {
+  if (!command || parsed.flags['help'] === true) {
     console.log(HELP);
     process.exit(0);
   }
 
   try {
     switch (command) {
-      case "config":
+      case 'config':
         await configCommand(parsed);
         break;
-      case "page":
+      case 'page':
         await pageCommand(parsed, format);
         break;
-      case "export":
+      case 'export':
         await exportCommand(parsed, format);
         break;
-      case "links":
+      case 'links':
         await linksCommand(parsed, format);
         break;
       default:
-        output(error("UNKNOWN_COMMAND", `Unknown command: ${command}`), format);
+        output(error('UNKNOWN_COMMAND', `Unknown command: ${command}`), format);
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    output(error("ERROR", msg), format);
+    output(error('ERROR', msg), format);
   }
 }
 

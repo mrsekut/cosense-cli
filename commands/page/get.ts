@@ -1,20 +1,26 @@
-import type { ParsedArgs } from "../../lib/args.ts";
-import { getString } from "../../lib/args.ts";
-import type { Format } from "../../lib/output.ts";
-import { output, success, error } from "../../lib/output.ts";
-import { resolveOptions } from "../../lib/config.ts";
-import { fetchPage } from "../../lib/cosense.ts";
+import type { ParsedArgs } from '../../lib/args.ts';
+import { getString } from '../../lib/args.ts';
+import type { Format } from '../../lib/output.ts';
+import { output, success, error } from '../../lib/output.ts';
+import { resolveOptions } from '../../lib/config.ts';
+import { fetchPage } from '../../lib/cosense.ts';
 
-export async function pageGet(parsed: ParsedArgs, format: Format): Promise<void> {
+export async function pageGet(
+  parsed: ParsedArgs,
+  format: Format,
+): Promise<void> {
   const title = parsed.commands[2];
   if (!title) {
-    output(error("MISSING_ARGUMENT", "Usage: cosense page get <title>"), format);
+    output(
+      error('MISSING_ARGUMENT', 'Usage: cosense page get <title>'),
+      format,
+    );
     return;
   }
 
   const opts = await resolveOptions({
-    profile: getString(parsed.flags, "profile"),
-    project: getString(parsed.flags, "project"),
+    profile: getString(parsed.flags, 'profile'),
+    project: getString(parsed.flags, 'project'),
   });
 
   const page = await fetchPage(opts.project, title, opts.sid);
