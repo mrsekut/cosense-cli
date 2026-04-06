@@ -5,7 +5,10 @@ CLI tool for [Cosense](https://scrapbox.io/) (formerly Scrapbox). Designed for A
 ## Install
 
 ```bash
+git clone https://github.com/mrsekut/cosense-cli.git
+cd cosense-cli
 bun install
+bun link   # makes `cosense` command available globally
 ```
 
 ## Setup
@@ -41,6 +44,14 @@ cosense export "Page Title" --project my-project --depth 2
 
 # Export all pages
 cosense export --all --project my-project
+```
+
+## Claude Code Skill
+
+Claude Code にスキルとしてインストールするには、`~/.claude/skills/` にシンボリックリンクを作成する:
+
+```bash
+ln -s /path/to/cosense-cli/SKILL.md ~/.claude/skills/cosense-cli.md
 ```
 
 ## Development
