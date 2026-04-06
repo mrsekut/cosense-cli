@@ -62,5 +62,6 @@ export async function pageAppend(parsed: ParsedArgs): Promise<void> {
     after: getString(parsed.values, 'after'),
     sid: opts.sid,
   });
-  output(success({ title, ...data }));
+  const url = `https://scrapbox.io/${encodeURIComponent(opts.project)}/${encodeURIComponent(title)}`;
+  output(success({ title, url, ...data }));
 }

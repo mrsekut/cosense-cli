@@ -58,5 +58,6 @@ export async function pageCreate(parsed: ParsedArgs): Promise<void> {
 
   const lines = body ? body.split('\n') : [];
   const data = await createPage(opts.project, title, lines, opts.sid);
-  output(success({ title, ...data }));
+  const url = `https://scrapbox.io/${encodeURIComponent(opts.project)}/${encodeURIComponent(title)}`;
+  output(success({ title, url, ...data }));
 }
