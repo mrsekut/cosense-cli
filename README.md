@@ -2,13 +2,10 @@
 
 CLI tool for [Cosense](https://scrapbox.io/) (formerly Scrapbox). Designed for AI agent integration with structured JSON output.
 
-## Install
+## Usage
 
 ```bash
-git clone https://github.com/mrsekut/cosense-cli.git
-cd cosense-cli
-bun install
-bun link   # makes `cosense` command available globally
+bunx cosense
 ```
 
 ## Setup
@@ -21,7 +18,7 @@ cosense profile set personal --sid <connect.sid>
 cosense project add my-project --profile personal
 ```
 
-## Usage
+## Commands
 
 ```bash
 # Search pages
@@ -48,19 +45,13 @@ cosense export --all --project my-project
 
 ## Claude Code Skill
 
-Claude Code にスキルとしてインストールするには、`~/.claude/skills/` にシンボリックリンクを作成する:
+To install as a Claude Code skill:
 
 ```bash
-ln -s /path/to/cosense-cli/SKILL.md ~/.claude/skills/cosense-cli.md
-```
-
-## Development
-
-```bash
-bun run index.ts
+npx skills add mrsekut/cosense-cli
 ```
 
 ## Documentation
 
-- [SKILL.md](./SKILL.md) — AI agent向けリファレンス
-- [AGENT_INSTRUCTIONS.md](./AGENT_INSTRUCTIONS.md) — AI agent向け詳細仕様
+- [SKILL.md](./SKILL.md) — AI agent reference
+- [AGENT_INSTRUCTIONS.md](./AGENT_INSTRUCTIONS.md) — Detailed agent integration spec
