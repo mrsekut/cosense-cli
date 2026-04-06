@@ -13,14 +13,16 @@ cosense-cli is a CLI tool for interacting with [Cosense](https://scrapbox.io/) (
 A human must configure at least one profile before the CLI can be used:
 
 ```sh
-cosense config set-profile <name> --sid <session-id> --project <project-name>
+cosense profile set <name> --sid <session-id> --project <project-name>
 ```
 
 The `sid` (session ID) is a browser cookie obtained from an authenticated Cosense session. Agents cannot perform this step autonomously.
 
+`profile set` supports interactive mode — when arguments are omitted, the user is prompted for input. API connectivity is validated before saving.
+
 ## Output Contract
 
-All commands produce structured output. Default format is JSON (`--format json`).
+All commands produce JSON output.
 
 ### Success
 
@@ -55,7 +57,7 @@ All commands produce structured output. Default format is JSON (`--format json`)
 | Code | Cause |
 |------|-------|
 | `UNKNOWN_COMMAND` | Unrecognized command name |
-| `UNKNOWN_SUBCOMMAND` | Unrecognized subcommand for config/page |
+| `UNKNOWN_SUBCOMMAND` | Unrecognized subcommand for profile/page |
 | `MISSING_ARGUMENT` | Required positional argument not provided |
 | `ERROR` | Runtime/API error (check `message` for details) |
 
@@ -66,18 +68,17 @@ These options apply to all commands that access the Cosense API:
 ```
 --profile <name>      Profile to use (default: "default")
 --project <name>      Project name (overrides profile default)
---format <json|text>  Output format (default: "json")
 --help                Show help
 ```
 
 ## Command Reference
 
-### config set-profile
+### profile set
 
 Create or update an authentication profile.
 
 ```sh
-cosense config set-profile <name> --sid <sid> --project <project>
+cosense profile set <name> --sid <sid> --project <project>
 ```
 
 | Argument/Option | Required | Description |
@@ -86,12 +87,14 @@ cosense config set-profile <name> --sid <sid> --project <project>
 | `--sid` | yes | Cosense session ID |
 | `--project` | yes | Default project name |
 
+All arguments can be omitted for interactive prompting (TTY only).
+
 **Response data:** `{ "profile": string, "project": string }`
 
-### config list-profiles
+### profile list
 
 ```sh
-cosense config list-profiles
+cosense profile list
 ```
 
 **Response data:**
@@ -103,10 +106,10 @@ cosense config list-profiles
 }
 ```
 
-### config remove-profile
+### profile remove
 
 ```sh
-cosense config remove-profile <name>
+cosense profile remove <name>
 ```
 
 **Response data:** `{ "removed": string }`
@@ -235,32 +238,12 @@ cosense export --all [--depth <1|2>] [--profile <name>] [--project <name>]
 }
 ```
 
-### links
-
-Explore a page's link structure without fetching full content.
-
-```sh
-cosense links <title> [--depth <1|2>] [--profile <name>] [--project <name>]
-```
-
-**Response data:**
-```json
-{
-  "title": "My Page",
-  "links": ["Direct Link 1", "Direct Link 2"],
-  "relatedPages": ["1-hop Page"],
-  "twoHopLinks": ["2-hop Page"]
-}
-```
-
-`twoHopLinks` is only included when `--depth 2`.
-
 ## Error Recovery
 
 | Symptom | Error code | Resolution |
 |---------|-----------|------------|
 | `No project specified` | `ERROR` | Pass `--project` or ensure profile has a default project |
-| `Unknown command: X` | `UNKNOWN_COMMAND` | Check spelling; valid commands: `config`, `page`, `export`, `links` |
+| `Unknown command: X` | `UNKNOWN_COMMAND` | Check spelling; valid commands: `profile`, `page`, `export` |
 | `MISSING_ARGUMENT` | `MISSING_ARGUMENT` | Check required positional arguments |
 | API/network failure | `ERROR` | Retry; if persistent, the `sid` may have expired (human must re-authenticate) |
 | Empty response | - | Page may not exist; verify title with `page search` first |
@@ -275,9 +258,6 @@ cosense page search "authentication" --project my-project
 
 # Get full page content
 cosense page get "authentication" --project my-project
-
-# Explore what a page links to
-cosense links "authentication" --depth 2 --project my-project
 
 # Export a page and all related context
 cosense export "authentication" --depth 2 --project my-project
@@ -317,4 +297,4 @@ cosense page list --limit 50 --skip 50 --sort updated
 
 Config file location: `~/.config/cosense-cli/config.json`
 
-Agents should treat this file as read-only. Use `config` subcommands to modify it.
+Agents should treat this file as read-only. Use `profile` subcommands to modify it.
