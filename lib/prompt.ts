@@ -21,6 +21,14 @@ export async function promptText(label: string, help: string): Promise<string> {
   return (value ?? '').trim();
 }
 
+/** Prompt for yes/no confirmation. Returns true if user enters 'y' or 'Y'. */
+export async function promptConfirm(message: string): Promise<boolean> {
+  process.stderr.write(`${message} (y/N): `);
+  const iter = reader();
+  const { value } = await iter.next();
+  return (value ?? '').trim().toLowerCase() === 'y';
+}
+
 /** Prompt for secret input (characters are not echoed). */
 export async function promptSecret(
   label: string,

@@ -1,7 +1,8 @@
 import type { ParsedArgs } from '../lib/args.ts';
 import { getString } from '../lib/args.ts';
 import { loadConfig, saveConfig } from '../lib/config.ts';
-import { promptText, promptSecret } from '../lib/prompt.ts';
+import { validateConnection } from '../lib/cosense.ts';
+import { promptText, promptSecret, promptConfirm } from '../lib/prompt.ts';
 
 export async function profileCommand(parsed: ParsedArgs): Promise<void> {
   const subcommand = parsed.positionals[1];
@@ -30,6 +31,22 @@ export async function profileCommand(parsed: ParsedArgs): Promise<void> {
       if (!name || !sid || !project) {
         console.error('name, sid, project はすべて必須です。');
         process.exit(1);
+      }
+
+      const isTTY = process.stdin.isTTY ?? false;
+      const validation = await validateConnection(project, sid);
+      if (!validation.ok) {
+        const warning = `⚠ API接続に失敗しました: ${validation.message}`;
+        if (isTTY) {
+          process.stderr.write(`${warning}\n`);
+          const proceed = await promptConfirm('それでも保存しますか？');
+          if (!proceed) {
+            console.error('保存を中止しました。');
+            process.exit(1);
+          }
+        } else {
+          process.stderr.write(`${warning}\n`);
+        }
       }
 
       const config = await loadConfig();
