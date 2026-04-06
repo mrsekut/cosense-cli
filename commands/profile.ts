@@ -1,8 +1,7 @@
 import type { ParsedArgs } from '../lib/args.ts';
 import { getString } from '../lib/args.ts';
 import { loadConfig, saveConfig } from '../lib/config.ts';
-import { validateConnection } from '../lib/cosense.ts';
-import { promptText, promptSecret, promptConfirm } from '../lib/prompt.ts';
+import { promptText, promptSecret } from '../lib/prompt.ts';
 
 export async function profileCommand(parsed: ParsedArgs): Promise<void> {
   const subcommand = parsed.positionals[1];
@@ -13,7 +12,7 @@ export async function profileCommand(parsed: ParsedArgs): Promise<void> {
         parsed.positionals[2] ??
         (await promptText(
           'Profile name',
-          'プロファイル名を入力してください (例: main, work)',
+          'プロファイル名を入力してください (例: personal, work)',
         ));
       const sid =
         getString(parsed.values, 'sid') ??
@@ -21,40 +20,16 @@ export async function profileCommand(parsed: ParsedArgs): Promise<void> {
           'connect.sid',
           'CosenseのCookie中の connect.sid の値を入力してください',
         ));
-      const project =
-        getString(parsed.values, 'project') ??
-        (await promptText(
-          'Project',
-          'デフォルトのプロジェクト名を入力してください (例: help-jp)',
-        ));
 
-      if (!name || !sid || !project) {
-        console.error('name, sid, project はすべて必須です。');
+      if (!name || !sid) {
+        console.error('name and sid are required.');
         process.exit(1);
       }
 
-      const isTTY = process.stdin.isTTY ?? false;
-      const validation = await validateConnection(project, sid);
-      if (!validation.ok) {
-        const warning = `⚠ API接続に失敗しました: ${validation.message}`;
-        if (isTTY) {
-          process.stderr.write(`${warning}\n`);
-          const proceed = await promptConfirm('それでも保存しますか？');
-          if (!proceed) {
-            console.error('保存を中止しました。');
-            process.exit(1);
-          }
-        } else {
-          process.stderr.write(`${warning}\n`);
-        }
-      }
-
       const config = await loadConfig();
-      config.profiles[name] = { sid, defaultProject: project };
+      config.profiles[name] = { sid };
       await saveConfig(config);
-      console.log(
-        JSON.stringify({ ok: true, data: { profile: name, project } }),
-      );
+      console.log(JSON.stringify({ ok: true, data: { profile: name } }));
       break;
     }
 
@@ -62,7 +37,6 @@ export async function profileCommand(parsed: ParsedArgs): Promise<void> {
       const config = await loadConfig();
       const profiles = Object.entries(config.profiles).map(([name, p]) => ({
         name,
-        defaultProject: p.defaultProject,
         hasSid: !!p.sid,
       }));
       console.log(JSON.stringify({ ok: true, data: { profiles } }, null, 2));

@@ -10,15 +10,19 @@ cosense-cli is a CLI tool for interacting with [Cosense](https://scrapbox.io/) (
 
 ## Prerequisites
 
-A human must configure at least one profile before the CLI can be used:
+A human must configure at least one profile and register projects before the CLI can be used:
 
 ```sh
-cosense profile set <name> --sid <session-id> --project <project-name>
+# 1. Create a profile (human only — requires browser cookie)
+cosense profile set <name> --sid <session-id>
+
+# 2. Register projects to the profile (human or agent)
+cosense project add <project-name> --profile <name>
 ```
 
 The `sid` (session ID) is a browser cookie obtained from an authenticated Cosense session. Agents cannot perform this step autonomously.
 
-`profile set` supports interactive mode — when arguments are omitted, the user is prompted for input. API connectivity is validated before saving.
+`profile set` supports interactive mode — when arguments are omitted, the user is prompted for input.
 
 ## Output Contract
 
@@ -57,17 +61,14 @@ All commands produce JSON output.
 | Code | Cause |
 |------|-------|
 | `UNKNOWN_COMMAND` | Unrecognized command name |
-| `UNKNOWN_SUBCOMMAND` | Unrecognized subcommand for profile/page |
-| `MISSING_ARGUMENT` | Required positional argument not provided |
+| `UNKNOWN_SUBCOMMAND` | Unrecognized subcommand for profile/project/page |
+| `MISSING_ARGUMENT` | Required positional argument or `--project` not provided |
 | `ERROR` | Runtime/API error (check `message` for details) |
 
 ## Global Options
 
-These options apply to all commands that access the Cosense API:
-
 ```
---profile <name>      Profile to use (default: "default")
---project <name>      Project name (overrides profile default)
+--project <name>      Project name (required for page/export commands)
 --help                Show help
 ```
 
@@ -75,21 +76,20 @@ These options apply to all commands that access the Cosense API:
 
 ### profile set
 
-Create or update an authentication profile.
+Create or update an authentication profile (account-level, SID only).
 
 ```sh
-cosense profile set <name> --sid <sid> --project <project>
+cosense profile set <name> --sid <sid>
 ```
 
 | Argument/Option | Required | Description |
 |----------------|----------|-------------|
 | `<name>` | yes | Profile name |
 | `--sid` | yes | Cosense session ID |
-| `--project` | yes | Default project name |
 
 All arguments can be omitted for interactive prompting (TTY only).
 
-**Response data:** `{ "profile": string, "project": string }`
+**Response data:** `{ "profile": string }`
 
 ### profile list
 
@@ -101,7 +101,7 @@ cosense profile list
 ```json
 {
   "profiles": [
-    { "name": "default", "defaultProject": "my-project", "hasSid": true }
+    { "name": "personal", "hasSid": true }
   ]
 }
 ```
@@ -114,12 +114,50 @@ cosense profile remove <name>
 
 **Response data:** `{ "removed": string }`
 
+### project add
+
+Register a project and associate it with a profile.
+
+```sh
+cosense project add <name> --profile <profile>
+```
+
+| Argument/Option | Required | Description |
+|----------------|----------|-------------|
+| `<name>` | yes | Project name (as it appears in Cosense URL) |
+| `--profile` | yes | Profile to use for authentication |
+
+**Response data:** `{ "project": string, "profile": string }`
+
+### project list
+
+```sh
+cosense project list
+```
+
+**Response data:**
+```json
+{
+  "projects": [
+    { "name": "my-project", "profile": "personal" }
+  ]
+}
+```
+
+### project remove
+
+```sh
+cosense project remove <name>
+```
+
+**Response data:** `{ "removed": string }`
+
 ### page get
 
 Fetch a single page with content and link metadata.
 
 ```sh
-cosense page get <title> [--profile <name>] [--project <name>]
+cosense page get <title> --project <name>
 ```
 
 **Response data:**
@@ -141,7 +179,7 @@ cosense page get <title> [--profile <name>] [--project <name>]
 List pages in a project with pagination.
 
 ```sh
-cosense page list [--sort <field>] [--limit <n>] [--skip <n>] [--profile <name>] [--project <name>]
+cosense page list --project <name> [--sort <field>] [--limit <n>] [--skip <n>]
 ```
 
 | Option | Default | Values |
@@ -165,7 +203,7 @@ cosense page list [--sort <field>] [--limit <n>] [--skip <n>] [--profile <name>]
 Full-text search across pages.
 
 ```sh
-cosense page search <query> [--profile <name>] [--project <name>]
+cosense page search <query> --project <name>
 ```
 
 **Response data:**
@@ -184,8 +222,8 @@ cosense page search <query> [--profile <name>] [--project <name>]
 Create a new page. Body can be provided via `--body` or piped via `--body-stdin`.
 
 ```sh
-cosense page create <title> --body <text> [--input-format <md|sb>] [--profile <name>] [--project <name>]
-cosense page create <title> --body-stdin [--input-format <md|sb>] [--profile <name>] [--project <name>]
+cosense page create <title> --project <name> --body <text> [--input-format <md|sb>]
+cosense page create <title> --project <name> --body-stdin [--input-format <md|sb>]
 ```
 
 | Option | Default | Description |
@@ -201,8 +239,8 @@ cosense page create <title> --body-stdin [--input-format <md|sb>] [--profile <na
 Append content to an existing page.
 
 ```sh
-cosense page append <title> --body <text> [--after <text>] [--input-format <md|sb>] [--profile <name>] [--project <name>]
-cosense page append <title> --body-stdin [--after <text>] [--input-format <md|sb>] [--profile <name>] [--project <name>]
+cosense page append <title> --project <name> --body <text> [--after <text>] [--input-format <md|sb>]
+cosense page append <title> --project <name> --body-stdin [--after <text>] [--input-format <md|sb>]
 ```
 
 | Option | Default | Description |
@@ -219,8 +257,8 @@ cosense page append <title> --body-stdin [--after <text>] [--input-format <md|sb
 Export page content with related pages. Use for bulk retrieval.
 
 ```sh
-cosense export <title> [--depth <1|2>] [--profile <name>] [--project <name>]
-cosense export --all [--depth <1|2>] [--profile <name>] [--project <name>]
+cosense export <title> --project <name> [--depth <1|2>]
+cosense export --all --project <name> [--depth <1|2>]
 ```
 
 | Option | Default | Description |
@@ -242,8 +280,10 @@ cosense export --all [--depth <1|2>] [--profile <name>] [--project <name>]
 
 | Symptom | Error code | Resolution |
 |---------|-----------|------------|
-| `No project specified` | `ERROR` | Pass `--project` or ensure profile has a default project |
-| `Unknown command: X` | `UNKNOWN_COMMAND` | Check spelling; valid commands: `profile`, `page`, `export` |
+| `--project is required` | `MISSING_ARGUMENT` | Add `--project <name>` to the command |
+| `Project "X" is not registered` | `ERROR` | Run `cosense project add X --profile <profile>` |
+| `Profile "X" not found` | `ERROR` | Run `cosense profile set X --sid <sid>` |
+| `Unknown command: X` | `UNKNOWN_COMMAND` | Check spelling; valid commands: `profile`, `project`, `page`, `export` |
 | `MISSING_ARGUMENT` | `MISSING_ARGUMENT` | Check required positional arguments |
 | API/network failure | `ERROR` | Retry; if persistent, the `sid` may have expired (human must re-authenticate) |
 | Empty response | - | Page may not exist; verify title with `page search` first |
@@ -260,26 +300,26 @@ cosense page search "authentication" --project my-project
 cosense page get "authentication" --project my-project
 
 # Export a page and all related context
-cosense export "authentication" --depth 2 --project my-project
+cosense export "authentication" --project my-project --depth 2
 ```
 
 ### Writing content
 
 ```sh
 # Create a new page with Markdown
-cosense page create "Meeting Notes 2025-01-15" --body "## Agenda\n- Item 1\n- Item 2"
+cosense page create "Meeting Notes 2025-01-15" --project my-project --body "## Agenda\n- Item 1\n- Item 2"
 
 # Create with stdin (useful for long content)
-echo "## Summary\nKey decisions made." | cosense page create "Meeting Summary" --body-stdin
+echo "## Summary\nKey decisions made." | cosense page create "Meeting Summary" --project my-project --body-stdin
 
 # Append to existing page
-cosense page append "Daily Log" --body "- Completed task X"
+cosense page append "Daily Log" --project my-project --body "- Completed task X"
 
 # Insert after a specific section header
-cosense page append "Project Plan" --body "- New subtask" --after "## Tasks"
+cosense page append "Project Plan" --project my-project --body "- New subtask" --after "## Tasks"
 
 # Write in Scrapbox native format (skip Markdown conversion)
-cosense page create "New Page" --body "[link] some [bold text]" --input-format sb
+cosense page create "New Page" --project my-project --body "[link] some [bold text]" --input-format sb
 ```
 
 ### Bulk operations
@@ -289,12 +329,24 @@ cosense page create "New Page" --body "[link] some [bold text]" --input-format s
 cosense export --all --project my-project
 
 # Paginated page listing
-cosense page list --limit 50 --skip 0 --sort updated
-cosense page list --limit 50 --skip 50 --sort updated
+cosense page list --project my-project --limit 50 --skip 0 --sort updated
+cosense page list --project my-project --limit 50 --skip 50 --sort updated
 ```
 
 ## Configuration
 
 Config file location: `~/.config/cosense-cli/config.json`
 
-Agents should treat this file as read-only. Use `profile` subcommands to modify it.
+Structure:
+```json
+{
+  "profiles": {
+    "personal": { "sid": "..." }
+  },
+  "projects": {
+    "my-project": { "profile": "personal" }
+  }
+}
+```
+
+Agents should treat this file as read-only. Use `profile` and `project` subcommands to modify it.

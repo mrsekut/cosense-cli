@@ -11,10 +11,12 @@ export async function pageSearch(parsed: ParsedArgs): Promise<void> {
     return;
   }
 
-  const opts = await resolveOptions({
-    profile: getString(parsed.values, 'profile'),
-    project: getString(parsed.values, 'project'),
-  });
+  const project = getString(parsed.values, 'project');
+  if (!project) {
+    output(error('MISSING_ARGUMENT', '--project is required'));
+    return;
+  }
+  const opts = await resolveOptions({ project });
 
   const data = await searchPages(opts.project, query, opts.sid);
   output(success(data));

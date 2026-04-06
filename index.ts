@@ -3,6 +3,7 @@
 import { parseArgs } from './lib/args.ts';
 import { output, error } from './lib/output.ts';
 import { profileCommand } from './commands/profile.ts';
+import { projectCommand } from './commands/project.ts';
 import { pageCommand } from './commands/page/index.ts';
 import { exportCommand } from './commands/export.ts';
 
@@ -12,12 +13,12 @@ Usage: cosense <command> [options]
 
 Commands:
   profile   Manage profiles (set, list, remove)
+  project   Manage projects (add, list, remove)
   page      Page operations (get, list, search, create, append)
   export    Export pages for AI consumption
 
 Global Options:
-  --profile <name>      Profile to use (default: "default")
-  --project <name>      Project name (overrides profile default)
+  --project <name>      Project name (required for page/export commands)
   --help                Show help
 `;
 
@@ -34,6 +35,9 @@ async function main() {
     switch (command) {
       case 'profile':
         await profileCommand(parsed);
+        break;
+      case 'project':
+        await projectCommand(parsed);
         break;
       case 'page':
         await pageCommand(parsed);

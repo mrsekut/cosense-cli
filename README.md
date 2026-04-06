@@ -11,33 +11,36 @@ bun install
 ## Setup
 
 ```bash
-# Configure a profile with your Cosense session ID
-cosense profile set default --sid <connect.sid> --project <project-name>
+# 1. Create a profile with your Cosense session ID
+cosense profile set personal --sid <connect.sid>
+
+# 2. Register projects to the profile
+cosense project add my-project --profile personal
 ```
 
 ## Usage
 
 ```bash
 # Search pages
-cosense page search "keyword"
+cosense page search "keyword" --project my-project
 
 # Get a page
-cosense page get "Page Title"
+cosense page get "Page Title" --project my-project
 
 # List pages
-cosense page list --sort updated --limit 50
+cosense page list --project my-project --sort updated --limit 50
 
 # Create a page
-cosense page create "New Page" --body "# Hello"
+cosense page create "New Page" --project my-project --body "# Hello"
 
 # Append to a page
-cosense page append "Existing Page" --body "Additional content"
+cosense page append "Existing Page" --project my-project --body "Additional content"
 
 # Export with related pages
-cosense export "Page Title" --depth 2
+cosense export "Page Title" --project my-project --depth 2
 
 # Export all pages
-cosense export --all
+cosense export --all --project my-project
 ```
 
 ## Development

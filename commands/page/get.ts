@@ -11,10 +11,12 @@ export async function pageGet(parsed: ParsedArgs): Promise<void> {
     return;
   }
 
-  const opts = await resolveOptions({
-    profile: getString(parsed.values, 'profile'),
-    project: getString(parsed.values, 'project'),
-  });
+  const project = getString(parsed.values, 'project');
+  if (!project) {
+    output(error('MISSING_ARGUMENT', '--project is required'));
+    return;
+  }
+  const opts = await resolveOptions({ project });
 
   const page = await fetchPage(opts.project, title, opts.sid);
   output(success(page));

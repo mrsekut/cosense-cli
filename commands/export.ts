@@ -23,10 +23,12 @@ const compact = <T>(arr: (T | null)[]): T[] =>
   arr.filter((x): x is T => x !== null);
 
 export async function exportCommand(parsed: ParsedArgs): Promise<void> {
-  const opts = await resolveOptions({
-    profile: getString(parsed.values, 'profile'),
-    project: getString(parsed.values, 'project'),
-  });
+  const project = getString(parsed.values, 'project');
+  if (!project) {
+    output(error('MISSING_ARGUMENT', '--project is required'));
+    return;
+  }
+  const opts = await resolveOptions({ project });
 
   const depth = getNumber(parsed.values, 'depth') ?? 1;
 

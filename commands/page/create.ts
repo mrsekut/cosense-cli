@@ -17,10 +17,12 @@ export async function pageCreate(parsed: ParsedArgs): Promise<void> {
     return;
   }
 
-  const opts = await resolveOptions({
-    profile: getString(parsed.values, 'profile'),
-    project: getString(parsed.values, 'project'),
-  });
+  const project = getString(parsed.values, 'project');
+  if (!project) {
+    output(error('MISSING_ARGUMENT', '--project is required'));
+    return;
+  }
+  const opts = await resolveOptions({ project });
 
   const rawBody = getBool(parsed.values, 'body-stdin')
     ? await Bun.stdin.text()
@@ -28,7 +30,9 @@ export async function pageCreate(parsed: ParsedArgs): Promise<void> {
 
   const inputFormat = getString(parsed.values, 'input-format') ?? 'md';
   const body =
-    inputFormat === 'md' && rawBody ? await markdownToScrapbox(rawBody) : rawBody;
+    inputFormat === 'md' && rawBody
+      ? await markdownToScrapbox(rawBody)
+      : rawBody;
 
   const lines = body ? body.split('\n') : [];
   const data = await createPage(opts.project, title, lines, opts.sid);
