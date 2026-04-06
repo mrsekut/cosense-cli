@@ -25,11 +25,11 @@ Global Options:
 `;
 
 async function main() {
-  const parsed = parseArgs(process.argv);
-  const format = (getString(parsed.flags, 'format') ?? 'json') as Format;
-  const command = parsed.commands[0];
+  const parsed = parseArgs(Bun.argv);
+  const format = (getString(parsed.values, 'format') ?? 'json') as Format;
+  const command = parsed.positionals[0];
 
-  if (!command || parsed.flags['help'] === true) {
+  if (!command || parsed.values['help'] === true) {
     console.log(HELP);
     process.exit(0);
   }

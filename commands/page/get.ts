@@ -9,7 +9,7 @@ export async function pageGet(
   parsed: ParsedArgs,
   format: Format,
 ): Promise<void> {
-  const title = parsed.commands[2];
+  const title = parsed.positionals[2];
   if (!title) {
     output(
       error('MISSING_ARGUMENT', 'Usage: cosense page get <title>'),
@@ -19,8 +19,8 @@ export async function pageGet(
   }
 
   const opts = await resolveOptions({
-    profile: getString(parsed.flags, 'profile'),
-    project: getString(parsed.flags, 'project'),
+    profile: getString(parsed.values, 'profile'),
+    project: getString(parsed.values, 'project'),
   });
 
   const page = await fetchPage(opts.project, title, opts.sid);

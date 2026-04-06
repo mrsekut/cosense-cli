@@ -1,14 +1,14 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-export interface Profile {
+export type Profile = {
   sid: string;
   defaultProject: string;
-}
+};
 
-export interface Config {
+export type Config = {
   profiles: Record<string, Profile>;
-}
+};
 
 const CONFIG_DIR = join(homedir(), '.config', 'cosense-cli');
 const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
@@ -33,19 +33,17 @@ export async function getProfile(name: string): Promise<Profile | undefined> {
   return config.profiles[name];
 }
 
-export function resolveOptions(args: {
+export async function resolveOptions(args: {
   profile?: string;
   project?: string;
 }): Promise<{ sid?: string; project: string }> {
-  return (async () => {
-    const profileName = args.profile ?? 'default';
-    const profile = await getProfile(profileName);
-    const project = args.project ?? profile?.defaultProject;
-    if (!project) {
-      throw new Error(
-        `No project specified. Use --project or set a default project in profile "${profileName}".`,
-      );
-    }
-    return { sid: profile?.sid, project };
-  })();
+  const profileName = args.profile ?? 'default';
+  const profile = await getProfile(profileName);
+  const project = args.project ?? profile?.defaultProject;
+  if (!project) {
+    throw new Error(
+      `No project specified. Use --project or set a default project in profile "${profileName}".`,
+    );
+  }
+  return { sid: profile?.sid, project };
 }

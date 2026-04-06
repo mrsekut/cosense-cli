@@ -1,51 +1,53 @@
-export interface ParsedArgs {
-  commands: string[];
-  flags: Record<string, string | true>;
-}
+import { parseArgs as nodeParseArgs } from 'node:util';
 
-export function parseArgs(argv: string[]): ParsedArgs {
-  const args = argv.slice(2);
-  const commands: string[] = [];
-  const flags: Record<string, string | true> = {};
+export type ParsedArgs = {
+  positionals: string[];
+  values: Record<string, string | boolean | undefined>;
+};
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i]!;
-    if (arg.startsWith('--')) {
-      const key = arg.slice(2);
-      const next = args[i + 1];
-      if (next && !next.startsWith('--')) {
-        flags[key] = next;
-        i++;
-      } else {
-        flags[key] = true;
-      }
-    } else {
-      commands.push(arg);
-    }
-  }
+export const parseArgs = (argv: string[]): ParsedArgs => {
+  const { values, positionals } = nodeParseArgs({
+    args: argv.slice(2),
+    options: {
+      profile: { type: 'string' },
+      project: { type: 'string' },
+      format: { type: 'string' },
+      help: { type: 'boolean' },
+      sid: { type: 'string' },
+      body: { type: 'string' },
+      'body-stdin': { type: 'boolean' },
+      'input-format': { type: 'string' },
+      after: { type: 'string' },
+      sort: { type: 'string' },
+      limit: { type: 'string' },
+      skip: { type: 'string' },
+      depth: { type: 'string' },
+      all: { type: 'boolean' },
+    },
+    allowPositionals: true,
+    strict: false,
+  });
+  return {
+    positionals,
+    values: values as ParsedArgs['values'],
+  };
+};
 
-  return { commands, flags };
-}
-
-export function getString(
-  flags: Record<string, string | true>,
+export const getString = (
+  values: ParsedArgs['values'],
   key: string,
-): string | undefined {
-  const val = flags[key];
+): string | undefined => {
+  const val = values[key];
   return typeof val === 'string' ? val : undefined;
-}
+};
 
-export function getNumber(
-  flags: Record<string, string | true>,
+export const getNumber = (
+  values: ParsedArgs['values'],
   key: string,
-): number | undefined {
-  const val = getString(flags, key);
+): number | undefined => {
+  const val = getString(values, key);
   return val !== undefined ? Number(val) : undefined;
-}
+};
 
-export function getBool(
-  flags: Record<string, string | true>,
-  key: string,
-): boolean {
-  return flags[key] !== undefined;
-}
+export const getBool = (values: ParsedArgs['values'], key: string): boolean =>
+  values[key] !== undefined;

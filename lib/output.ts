@@ -1,12 +1,12 @@
-export interface SuccessResult<T> {
+export type SuccessResult<T> = {
   ok: true;
   data: T;
-}
+};
 
-export interface ErrorResult {
+export type ErrorResult = {
   ok: false;
   error: { code: string; message: string };
-}
+};
 
 export type Result<T> = SuccessResult<T> | ErrorResult;
 

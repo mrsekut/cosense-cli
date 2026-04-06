@@ -5,23 +5,41 @@ import { output, success, error } from '../lib/output.ts';
 import { resolveOptions } from '../lib/config.ts';
 import { fetchPage, fetchPageList } from '../lib/cosense.ts';
 
+type PageEntry = { title: string; lines: string[] };
+
+const tryFetchPage = async (
+  project: string,
+  title: string,
+  sid?: string,
+): Promise<PageEntry | null> => {
+  try {
+    const page = await fetchPage(project, title, sid);
+    return { title: page.title, lines: page.lines };
+  } catch {
+    return null;
+  }
+};
+
+const compact = <T>(arr: (T | null)[]): T[] =>
+  arr.filter((x): x is T => x !== null);
+
 export async function exportCommand(
   parsed: ParsedArgs,
   format: Format,
 ): Promise<void> {
   const opts = await resolveOptions({
-    profile: getString(parsed.flags, 'profile'),
-    project: getString(parsed.flags, 'project'),
+    profile: getString(parsed.values, 'profile'),
+    project: getString(parsed.values, 'project'),
   });
 
-  const depth = getNumber(parsed.flags, 'depth') ?? 1;
+  const depth = getNumber(parsed.values, 'depth') ?? 1;
 
-  if (getBool(parsed.flags, 'all')) {
+  if (getBool(parsed.values, 'all')) {
     await exportAll(opts.project, opts.sid, format);
     return;
   }
 
-  const title = parsed.commands[1];
+  const title = parsed.positionals[1];
   if (!title) {
     output(
       error(
@@ -34,45 +52,38 @@ export async function exportCommand(
   }
 
   const page = await fetchPage(opts.project, title, opts.sid);
+  const rootPage: PageEntry = { title: page.title, lines: page.lines };
 
-  const pages: Array<{ title: string; lines: string[] }> = [
-    { title: page.title, lines: page.lines },
-  ];
+  const oneHopPages =
+    depth >= 1 && page.relatedPages
+      ? compact(
+          await Promise.all(
+            (page.relatedPages.links1hop ?? []).map(linked =>
+              tryFetchPage(opts.project, linked.title, opts.sid),
+            ),
+          ),
+        )
+      : [];
 
-  if (depth >= 1 && page.relatedPages) {
-    const oneHopLinks = page.relatedPages.links1hop ?? [];
-    for (const linked of oneHopLinks) {
-      try {
-        const linkedPage = await fetchPage(
-          opts.project,
-          linked.title,
-          opts.sid,
-        );
-        pages.push({ title: linkedPage.title, lines: linkedPage.lines });
-      } catch {
-        // skip pages that can't be fetched
-      }
-    }
-  }
+  const seenTitles = new Set([
+    rootPage.title,
+    ...oneHopPages.map(p => p.title),
+  ]);
 
-  if (depth >= 2 && page.relatedPages) {
-    const twoHopLinks = page.relatedPages.links2hop ?? [];
-    const seen = new Set(pages.map(p => p.title));
-    for (const linked of twoHopLinks) {
-      if (seen.has(linked.title)) continue;
-      try {
-        const linkedPage = await fetchPage(
-          opts.project,
-          linked.title,
-          opts.sid,
-        );
-        pages.push({ title: linkedPage.title, lines: linkedPage.lines });
-        seen.add(linked.title);
-      } catch {
-        // skip
-      }
-    }
-  }
+  const twoHopPages =
+    depth >= 2 && page.relatedPages
+      ? compact(
+          await Promise.all(
+            (page.relatedPages.links2hop ?? [])
+              .filter(linked => !seenTitles.has(linked.title))
+              .map(linked =>
+                tryFetchPage(opts.project, linked.title, opts.sid),
+              ),
+          ),
+        )
+      : [];
+
+  const pages = [rootPage, ...oneHopPages, ...twoHopPages];
 
   if (format === 'text') {
     const text = pages
@@ -90,16 +101,14 @@ async function exportAll(
   format: Format,
 ): Promise<void> {
   const result = await fetchPageList(project, { limit: 1000, sid });
-  const pages: Array<{ title: string; lines: string[] }> = [];
 
-  for (const pageSummary of result.pages) {
-    try {
-      const page = await fetchPage(project, pageSummary.title, sid);
-      pages.push({ title: page.title, lines: page.lines });
-    } catch {
-      // skip
-    }
-  }
+  const pages = compact(
+    await Promise.all(
+      result.pages.map(pageSummary =>
+        tryFetchPage(project, pageSummary.title, sid),
+      ),
+    ),
+  );
 
   if (format === 'text') {
     const text = pages

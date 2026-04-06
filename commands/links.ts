@@ -9,7 +9,7 @@ export async function linksCommand(
   parsed: ParsedArgs,
   format: Format,
 ): Promise<void> {
-  const title = parsed.commands[1];
+  const title = parsed.positionals[1];
   if (!title) {
     output(
       error('MISSING_ARGUMENT', 'Usage: cosense links <title> [--depth 1|2]'),
@@ -19,11 +19,11 @@ export async function linksCommand(
   }
 
   const opts = await resolveOptions({
-    profile: getString(parsed.flags, 'profile'),
-    project: getString(parsed.flags, 'project'),
+    profile: getString(parsed.values, 'profile'),
+    project: getString(parsed.values, 'project'),
   });
 
-  const depth = getNumber(parsed.flags, 'depth') ?? 1;
+  const depth = getNumber(parsed.values, 'depth') ?? 1;
   const page = await fetchPage(opts.project, title, opts.sid);
 
   const links = page.links ?? [];

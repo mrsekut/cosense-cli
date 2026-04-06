@@ -9,7 +9,7 @@ export async function pageSearch(
   parsed: ParsedArgs,
   format: Format,
 ): Promise<void> {
-  const query = parsed.commands.slice(2).join(' ');
+  const query = parsed.positionals.slice(2).join(' ');
   if (!query) {
     output(
       error('MISSING_ARGUMENT', 'Usage: cosense page search <query>'),
@@ -19,8 +19,8 @@ export async function pageSearch(
   }
 
   const opts = await resolveOptions({
-    profile: getString(parsed.flags, 'profile'),
-    project: getString(parsed.flags, 'project'),
+    profile: getString(parsed.values, 'profile'),
+    project: getString(parsed.values, 'project'),
   });
 
   const data = await searchPages(opts.project, query, opts.sid);

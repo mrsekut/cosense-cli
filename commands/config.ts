@@ -3,19 +3,19 @@ import { getString } from '../lib/args.ts';
 import { loadConfig, saveConfig } from '../lib/config.ts';
 
 export async function configCommand(parsed: ParsedArgs): Promise<void> {
-  const subcommand = parsed.commands[1];
+  const subcommand = parsed.positionals[1];
 
   switch (subcommand) {
     case 'set-profile': {
-      const name = parsed.commands[2];
+      const name = parsed.positionals[2];
       if (!name) {
         console.error(
           'Usage: cosense config set-profile <name> --sid <sid> --project <project>',
         );
         process.exit(1);
       }
-      const sid = getString(parsed.flags, 'sid');
-      const project = getString(parsed.flags, 'project');
+      const sid = getString(parsed.values, 'sid');
+      const project = getString(parsed.values, 'project');
       if (!sid || !project) {
         console.error('Both --sid and --project are required.');
         process.exit(1);
@@ -41,7 +41,7 @@ export async function configCommand(parsed: ParsedArgs): Promise<void> {
     }
 
     case 'remove-profile': {
-      const name = parsed.commands[2];
+      const name = parsed.positionals[2];
       if (!name) {
         console.error('Usage: cosense config remove-profile <name>');
         process.exit(1);

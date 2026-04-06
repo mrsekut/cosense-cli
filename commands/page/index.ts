@@ -11,7 +11,7 @@ export async function pageCommand(
   parsed: ParsedArgs,
   format: Format,
 ): Promise<void> {
-  const subcommand = parsed.commands[1];
+  const subcommand = parsed.positionals[1];
 
   switch (subcommand) {
     case 'get':

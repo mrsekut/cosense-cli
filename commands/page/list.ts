@@ -10,14 +10,14 @@ export async function pageList(
   format: Format,
 ): Promise<void> {
   const opts = await resolveOptions({
-    profile: getString(parsed.flags, 'profile'),
-    project: getString(parsed.flags, 'project'),
+    profile: getString(parsed.values, 'profile'),
+    project: getString(parsed.values, 'project'),
   });
 
   const data = await fetchPageList(opts.project, {
-    sort: getString(parsed.flags, 'sort'),
-    limit: getNumber(parsed.flags, 'limit'),
-    skip: getNumber(parsed.flags, 'skip'),
+    sort: getString(parsed.values, 'sort'),
+    limit: getNumber(parsed.values, 'limit'),
+    skip: getNumber(parsed.values, 'skip'),
     sid: opts.sid,
   });
 
