@@ -11,7 +11,6 @@ export const parseArgs = (argv: string[]): ParsedArgs => {
     options: {
       profile: { type: 'string' },
       project: { type: 'string' },
-      format: { type: 'string' },
       help: { type: 'boolean' },
       sid: { type: 'string' },
       body: { type: 'string' },

@@ -1,5 +1,4 @@
 import type { ParsedArgs } from '../../lib/args.ts';
-import type { Format } from '../../lib/output.ts';
 import { output, error } from '../../lib/output.ts';
 import { pageGet } from './get.ts';
 import { pageList } from './list.ts';
@@ -7,27 +6,24 @@ import { pageSearch } from './search.ts';
 import { pageCreate } from './create.ts';
 import { pageAppend } from './append.ts';
 
-export async function pageCommand(
-  parsed: ParsedArgs,
-  format: Format,
-): Promise<void> {
+export async function pageCommand(parsed: ParsedArgs): Promise<void> {
   const subcommand = parsed.positionals[1];
 
   switch (subcommand) {
     case 'get':
-      await pageGet(parsed, format);
+      await pageGet(parsed);
       break;
     case 'list':
-      await pageList(parsed, format);
+      await pageList(parsed);
       break;
     case 'search':
-      await pageSearch(parsed, format);
+      await pageSearch(parsed);
       break;
     case 'create':
-      await pageCreate(parsed, format);
+      await pageCreate(parsed);
       break;
     case 'append':
-      await pageAppend(parsed, format);
+      await pageAppend(parsed);
       break;
     default:
       output(
@@ -35,7 +31,6 @@ export async function pageCommand(
           'UNKNOWN_SUBCOMMAND',
           'Usage: cosense page <get|list|search|create|append>',
         ),
-        format,
       );
   }
 }

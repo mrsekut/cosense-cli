@@ -1,19 +1,14 @@
 import type { ParsedArgs } from '../lib/args.ts';
 import { getString, getNumber } from '../lib/args.ts';
-import type { Format } from '../lib/output.ts';
 import { output, success, error } from '../lib/output.ts';
 import { resolveOptions } from '../lib/config.ts';
 import { fetchPage } from '../lib/cosense.ts';
 
-export async function linksCommand(
-  parsed: ParsedArgs,
-  format: Format,
-): Promise<void> {
+export async function linksCommand(parsed: ParsedArgs): Promise<void> {
   const title = parsed.positionals[1];
   if (!title) {
     output(
       error('MISSING_ARGUMENT', 'Usage: cosense links <title> [--depth 1|2]'),
-      format,
     );
     return;
   }
@@ -42,6 +37,5 @@ export async function linksCommand(
       relatedPages: oneHopLinks,
       ...(depth >= 2 ? { twoHopLinks } : {}),
     }),
-    format,
   );
 }

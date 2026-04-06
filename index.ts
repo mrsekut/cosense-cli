@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
-import { parseArgs, getString } from './lib/args.ts';
-import { output, error, type Format } from './lib/output.ts';
+import { parseArgs } from './lib/args.ts';
+import { output, error } from './lib/output.ts';
 import { profileCommand } from './commands/profile.ts';
 import { pageCommand } from './commands/page/index.ts';
 import { exportCommand } from './commands/export.ts';
@@ -20,13 +20,11 @@ Commands:
 Global Options:
   --profile <name>      Profile to use (default: "default")
   --project <name>      Project name (overrides profile default)
-  --format <json|text>  Output format (default: json)
   --help                Show help
 `;
 
 async function main() {
   const parsed = parseArgs(Bun.argv);
-  const format = (getString(parsed.values, 'format') ?? 'json') as Format;
   const command = parsed.positionals[0];
 
   if (!command || parsed.values['help'] === true) {
@@ -40,20 +38,20 @@ async function main() {
         await profileCommand(parsed);
         break;
       case 'page':
-        await pageCommand(parsed, format);
+        await pageCommand(parsed);
         break;
       case 'export':
-        await exportCommand(parsed, format);
+        await exportCommand(parsed);
         break;
       case 'links':
-        await linksCommand(parsed, format);
+        await linksCommand(parsed);
         break;
       default:
-        output(error('UNKNOWN_COMMAND', `Unknown command: ${command}`), format);
+        output(error('UNKNOWN_COMMAND', `Unknown command: ${command}`));
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    output(error('ERROR', msg), format);
+    output(error('ERROR', msg));
   }
 }
 

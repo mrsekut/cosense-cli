@@ -1,6 +1,5 @@
 import type { ParsedArgs } from '../lib/args.ts';
 import { getString, getNumber, getBool } from '../lib/args.ts';
-import type { Format } from '../lib/output.ts';
 import { output, success, error } from '../lib/output.ts';
 import { resolveOptions } from '../lib/config.ts';
 import { fetchPage, fetchPageList } from '../lib/cosense.ts';
@@ -23,10 +22,7 @@ const tryFetchPage = async (
 const compact = <T>(arr: (T | null)[]): T[] =>
   arr.filter((x): x is T => x !== null);
 
-export async function exportCommand(
-  parsed: ParsedArgs,
-  format: Format,
-): Promise<void> {
+export async function exportCommand(parsed: ParsedArgs): Promise<void> {
   const opts = await resolveOptions({
     profile: getString(parsed.values, 'profile'),
     project: getString(parsed.values, 'project'),
@@ -35,7 +31,7 @@ export async function exportCommand(
   const depth = getNumber(parsed.values, 'depth') ?? 1;
 
   if (getBool(parsed.values, 'all')) {
-    await exportAll(opts.project, opts.sid, format);
+    await exportAll(opts.project, opts.sid);
     return;
   }
 
@@ -46,7 +42,6 @@ export async function exportCommand(
         'MISSING_ARGUMENT',
         'Usage: cosense export <title> [--depth 1|2] or cosense export --all',
       ),
-      format,
     );
     return;
   }
@@ -84,21 +79,12 @@ export async function exportCommand(
       : [];
 
   const pages = [rootPage, ...oneHopPages, ...twoHopPages];
-
-  if (format === 'text') {
-    const text = pages
-      .map(p => `=== ${p.title} ===\n${p.lines.join('\n')}`)
-      .join('\n\n');
-    console.log(text);
-  } else {
-    output(success({ pages }), format);
-  }
+  output(success({ pages }));
 }
 
 async function exportAll(
   project: string,
   sid: string | undefined,
-  format: Format,
 ): Promise<void> {
   const result = await fetchPageList(project, { limit: 1000, sid });
 
@@ -110,12 +96,5 @@ async function exportAll(
     ),
   );
 
-  if (format === 'text') {
-    const text = pages
-      .map(p => `=== ${p.title} ===\n${p.lines.join('\n')}`)
-      .join('\n\n');
-    console.log(text);
-  } else {
-    output(success({ count: pages.length, pages }), format);
-  }
+  output(success({ count: pages.length, pages }));
 }

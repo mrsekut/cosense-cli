@@ -1,15 +1,11 @@
 import type { ParsedArgs } from '../../lib/args.ts';
 import { getString, getBool } from '../../lib/args.ts';
-import type { Format } from '../../lib/output.ts';
 import { output, success, error } from '../../lib/output.ts';
 import { resolveOptions } from '../../lib/config.ts';
 import { createPage } from '../../lib/cosense.ts';
 import { markdownToScrapbox } from '../../lib/markdown.ts';
 
-export async function pageCreate(
-  parsed: ParsedArgs,
-  format: Format,
-): Promise<void> {
+export async function pageCreate(parsed: ParsedArgs): Promise<void> {
   const title = parsed.positionals[2];
   if (!title) {
     output(
@@ -17,7 +13,6 @@ export async function pageCreate(
         'MISSING_ARGUMENT',
         'Usage: cosense page create <title> --body <text> | --body-stdin',
       ),
-      format,
     );
     return;
   }
@@ -37,5 +32,5 @@ export async function pageCreate(
 
   const lines = body ? body.split('\n') : [];
   const data = await createPage(opts.project, title, lines, opts.sid);
-  output(success({ title, ...data }), format);
+  output(success({ title, ...data }));
 }
