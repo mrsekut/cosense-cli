@@ -1,11 +1,29 @@
 {
   "name": "cosense",
-  "module": "index.ts",
+  "version": "0.1.0",
+  "description": "CLI tool for Cosense (formerly Scrapbox) — search, fetch, create, and append pages. Designed for AI agent integration.",
+  "module": "src/index.ts",
   "type": "module",
-  "private": true,
   "bin": {
-    "cosense": "index.ts"
+    "cosense": "src/index.ts"
   },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "author": "mrsekut",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrsekut/cosense-cli.git"
+  },
+  "keywords": [
+    "cosense",
+    "scrapbox",
+    "cli",
+    "ai-agent"
+  ],
   "devDependencies": {
     "@types/bun": "latest",
     "prettier": "^3.8.1"
