@@ -2,7 +2,7 @@
 
 import { parseArgs, getString } from './lib/args.ts';
 import { output, error, type Format } from './lib/output.ts';
-import { configCommand } from './commands/config.ts';
+import { profileCommand } from './commands/profile.ts';
 import { pageCommand } from './commands/page/index.ts';
 import { exportCommand } from './commands/export.ts';
 import { linksCommand } from './commands/links.ts';
@@ -12,7 +12,7 @@ const HELP = `cosense-cli - Cosense CLI for AI agents
 Usage: cosense <command> [options]
 
 Commands:
-  config    Manage profiles (set-profile, list-profiles, remove-profile)
+  profile   Manage profiles (set, list, remove)
   page      Page operations (get, list, search, create, append)
   export    Export pages for AI consumption
   links     Explore page link structure
@@ -36,8 +36,8 @@ async function main() {
 
   try {
     switch (command) {
-      case 'config':
-        await configCommand(parsed);
+      case 'profile':
+        await profileCommand(parsed);
         break;
       case 'page':
         await pageCommand(parsed, format);
