@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
-import { parseArgs } from './lib/args.ts';
-import { output, error } from './lib/output.ts';
+import { parseArgs } from './args.ts';
+import { output, error } from './output.ts';
 import { profileCommand } from './commands/profile.ts';
 import { projectCommand } from './commands/project.ts';
 import { pageCommand } from './commands/page/index.ts';

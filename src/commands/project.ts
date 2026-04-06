@@ -1,6 +1,6 @@
-import type { ParsedArgs } from '../lib/args.ts';
-import { getString, showHelp } from '../lib/args.ts';
-import { loadConfig, saveConfig } from '../lib/config.ts';
+import type { ParsedArgs } from '../args.ts';
+import { getString, showHelp } from '../args.ts';
+import { loadConfig, saveConfig } from '../config.ts';
 
 const HELP = `cosense project - Manage project-to-profile mappings
 

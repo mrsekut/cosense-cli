@@ -1,9 +1,9 @@
-import type { ParsedArgs } from '../../lib/args.ts';
-import { getString, getBool, showHelp } from '../../lib/args.ts';
-import { output, success, error } from '../../lib/output.ts';
-import { resolveOptions } from '../../lib/config.ts';
-import { createPage } from '../../lib/cosense.ts';
-import { markdownToScrapbox } from '../../lib/markdown.ts';
+import type { ParsedArgs } from '../../args.ts';
+import { getString, getBool, showHelp } from '../../args.ts';
+import { output, success, error } from '../../output.ts';
+import { resolveOptions } from '../../config.ts';
+import { createPage } from '../../cosense.ts';
+import { markdownToScrapbox } from '../../markdown.ts';
 
 const HELP = `cosense page create - Create a new page
 

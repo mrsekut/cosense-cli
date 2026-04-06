@@ -51,19 +51,19 @@ All commands produce JSON output.
 
 ### Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0    | Success |
+| Code | Meaning          |
+| ---- | ---------------- |
+| 0    | Success          |
 | 1    | Error (any kind) |
 
 ### Error Codes
 
-| Code | Cause |
-|------|-------|
-| `UNKNOWN_COMMAND` | Unrecognized command name |
-| `UNKNOWN_SUBCOMMAND` | Unrecognized subcommand for profile/project/page |
-| `MISSING_ARGUMENT` | Required positional argument or `--project` not provided |
-| `ERROR` | Runtime/API error (check `message` for details) |
+| Code                 | Cause                                                    |
+| -------------------- | -------------------------------------------------------- |
+| `UNKNOWN_COMMAND`    | Unrecognized command name                                |
+| `UNKNOWN_SUBCOMMAND` | Unrecognized subcommand for profile/project/page         |
+| `MISSING_ARGUMENT`   | Required positional argument or `--project` not provided |
+| `ERROR`              | Runtime/API error (check `message` for details)          |
 
 ## Global Options
 
@@ -82,10 +82,10 @@ Create or update an authentication profile (account-level, SID only).
 cosense profile set <name> --sid <sid>
 ```
 
-| Argument/Option | Required | Description |
-|----------------|----------|-------------|
-| `<name>` | yes | Profile name |
-| `--sid` | yes | Cosense session ID |
+| Argument/Option | Required | Description        |
+| --------------- | -------- | ------------------ |
+| `<name>`        | yes      | Profile name       |
+| `--sid`         | yes      | Cosense session ID |
 
 All arguments can be omitted for interactive prompting (TTY only).
 
@@ -98,11 +98,10 @@ cosense profile list
 ```
 
 **Response data:**
+
 ```json
 {
-  "profiles": [
-    { "name": "personal", "hasSid": true }
-  ]
+  "profiles": [{ "name": "personal", "hasSid": true }]
 }
 ```
 
@@ -122,10 +121,10 @@ Register a project and associate it with a profile.
 cosense project add <name> --profile <profile>
 ```
 
-| Argument/Option | Required | Description |
-|----------------|----------|-------------|
-| `<name>` | yes | Project name (as it appears in Cosense URL) |
-| `--profile` | yes | Profile to use for authentication |
+| Argument/Option | Required | Description                                 |
+| --------------- | -------- | ------------------------------------------- |
+| `<name>`        | yes      | Project name (as it appears in Cosense URL) |
+| `--profile`     | yes      | Profile to use for authentication           |
 
 **Response data:** `{ "project": string, "profile": string }`
 
@@ -136,11 +135,10 @@ cosense project list
 ```
 
 **Response data:**
+
 ```json
 {
-  "projects": [
-    { "name": "my-project", "profile": "personal" }
-  ]
+  "projects": [{ "name": "my-project", "profile": "personal" }]
 }
 ```
 
@@ -161,6 +159,7 @@ cosense page get <title> --project <name>
 ```
 
 **Response data:**
+
 ```json
 {
   "title": "Page Title",
@@ -182,18 +181,25 @@ List pages in a project with pagination.
 cosense page list --project <name> [--sort <field>] [--limit <n>] [--skip <n>]
 ```
 
-| Option | Default | Values |
-|--------|---------|--------|
-| `--sort` | `updated` | `updated`, `created`, `title` |
-| `--limit` | `100` | integer |
-| `--skip` | `0` | integer |
+| Option    | Default   | Values                        |
+| --------- | --------- | ----------------------------- |
+| `--sort`  | `updated` | `updated`, `created`, `title` |
+| `--limit` | `100`     | integer                       |
+| `--skip`  | `0`       | integer                       |
 
 **Response data:**
+
 ```json
 {
   "count": 42,
   "pages": [
-    { "title": "Page1", "descriptions": ["..."], "updated": 1700000000, "views": 10, "linked": 5 }
+    {
+      "title": "Page1",
+      "descriptions": ["..."],
+      "updated": 1700000000,
+      "views": 10,
+      "linked": 5
+    }
   ]
 }
 ```
@@ -207,13 +213,12 @@ cosense page search <query> --project <name>
 ```
 
 **Response data:**
+
 ```json
 {
   "query": "search term",
   "count": 5,
-  "pages": [
-    { "title": "Page Title", "words": 100, "lines": 5 }
-  ]
+  "pages": [{ "title": "Page Title", "words": 100, "lines": 5 }]
 }
 ```
 
@@ -226,11 +231,11 @@ cosense page create <title> --project <name> --body <text> [--input-format <md|s
 cosense page create <title> --project <name> --body-stdin [--input-format <md|sb>]
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--body` | `""` | Page content as string |
-| `--body-stdin` | false | Read content from stdin |
-| `--input-format` | `md` | `md` (Markdown, auto-converted) or `sb` (Scrapbox native) |
+| Option           | Default | Description                                               |
+| ---------------- | ------- | --------------------------------------------------------- |
+| `--body`         | `""`    | Page content as string                                    |
+| `--body-stdin`   | false   | Read content from stdin                                   |
+| `--input-format` | `md`    | `md` (Markdown, auto-converted) or `sb` (Scrapbox native) |
 
 **Response data:** `{ "title": string, "commitId": string }`
 
@@ -243,12 +248,12 @@ cosense page append <title> --project <name> --body <text> [--after <text>] [--i
 cosense page append <title> --project <name> --body-stdin [--after <text>] [--input-format <md|sb>]
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--body` | `""` | Content to append |
-| `--body-stdin` | false | Read content from stdin |
-| `--input-format` | `md` | `md` or `sb` |
-| `--after` | (end) | Substring match; insert after the first matching line. Falls back to end of page if not found. |
+| Option           | Default | Description                                                                                    |
+| ---------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `--body`         | `""`    | Content to append                                                                              |
+| `--body-stdin`   | false   | Read content from stdin                                                                        |
+| `--input-format` | `md`    | `md` or `sb`                                                                                   |
+| `--after`        | (end)   | Substring match; insert after the first matching line. Falls back to end of page if not found. |
 
 **Response data:** `{ "title": string, "commitId": string }`
 
@@ -261,12 +266,13 @@ cosense export <title> --project <name> [--depth <1|2>]
 cosense export --all --project <name> [--depth <1|2>]
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--depth` | `1` | `1` = root + 1-hop links, `2` = root + 1-hop + 2-hop links |
-| `--all` | false | Export all pages in the project (ignores title) |
+| Option    | Default | Description                                                |
+| --------- | ------- | ---------------------------------------------------------- |
+| `--depth` | `1`     | `1` = root + 1-hop links, `2` = root + 1-hop + 2-hop links |
+| `--all`   | false   | Export all pages in the project (ignores title)            |
 
 **Response data:**
+
 ```json
 {
   "pages": [
@@ -278,15 +284,15 @@ cosense export --all --project <name> [--depth <1|2>]
 
 ## Error Recovery
 
-| Symptom | Error code | Resolution |
-|---------|-----------|------------|
-| `--project is required` | `MISSING_ARGUMENT` | Add `--project <name>` to the command |
-| `Project "X" is not registered` | `ERROR` | Run `cosense project add X --profile <profile>` |
-| `Profile "X" not found` | `ERROR` | Run `cosense profile set X --sid <sid>` |
-| `Unknown command: X` | `UNKNOWN_COMMAND` | Check spelling; valid commands: `profile`, `project`, `page`, `export` |
-| `MISSING_ARGUMENT` | `MISSING_ARGUMENT` | Check required positional arguments |
-| API/network failure | `ERROR` | Retry; if persistent, the `sid` may have expired (human must re-authenticate) |
-| Empty response | - | Page may not exist; verify title with `page search` first |
+| Symptom                         | Error code         | Resolution                                                                    |
+| ------------------------------- | ------------------ | ----------------------------------------------------------------------------- |
+| `--project is required`         | `MISSING_ARGUMENT` | Add `--project <name>` to the command                                         |
+| `Project "X" is not registered` | `ERROR`            | Run `cosense project add X --profile <profile>`                               |
+| `Profile "X" not found`         | `ERROR`            | Run `cosense profile set X --sid <sid>`                                       |
+| `Unknown command: X`            | `UNKNOWN_COMMAND`  | Check spelling; valid commands: `profile`, `project`, `page`, `export`        |
+| `MISSING_ARGUMENT`              | `MISSING_ARGUMENT` | Check required positional arguments                                           |
+| API/network failure             | `ERROR`            | Retry; if persistent, the `sid` may have expired (human must re-authenticate) |
+| Empty response                  | -                  | Page may not exist; verify title with `page search` first                     |
 
 ## Recipes
 
@@ -338,6 +344,7 @@ cosense page list --project my-project --limit 50 --skip 50 --sort updated
 Config file location: `~/.config/cosense-cli/config.json`
 
 Structure:
+
 ```json
 {
   "profiles": {

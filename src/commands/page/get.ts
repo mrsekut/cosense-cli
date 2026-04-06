@@ -1,8 +1,8 @@
-import type { ParsedArgs } from '../../lib/args.ts';
-import { getString, showHelp } from '../../lib/args.ts';
-import { output, success, error } from '../../lib/output.ts';
-import { resolveOptions } from '../../lib/config.ts';
-import { fetchPage } from '../../lib/cosense.ts';
+import type { ParsedArgs } from '../../args.ts';
+import { getString, showHelp } from '../../args.ts';
+import { output, success, error } from '../../output.ts';
+import { resolveOptions } from '../../config.ts';
+import { fetchPage } from '../../cosense.ts';
 
 const HELP = `cosense page get - Fetch a single page by title
 

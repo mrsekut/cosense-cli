@@ -1,7 +1,7 @@
-import type { ParsedArgs } from '../lib/args.ts';
-import { getString, showHelp } from '../lib/args.ts';
-import { loadConfig, saveConfig } from '../lib/config.ts';
-import { promptText, promptSecret } from '../lib/prompt.ts';
+import type { ParsedArgs } from '../args.ts';
+import { getString, showHelp } from '../args.ts';
+import { loadConfig, saveConfig } from '../config.ts';
+import { promptText, promptSecret } from '../prompt.ts';
 
 const HELP = `cosense profile - Manage authentication profiles
 
