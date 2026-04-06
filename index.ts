@@ -26,7 +26,15 @@ async function main() {
   const parsed = parseArgs(Bun.argv);
   const command = parsed.positionals[0];
 
-  if (!command || parsed.values['help'] === true) {
+  if (!command) {
+    console.log(HELP);
+    process.exit(0);
+  }
+
+  if (
+    parsed.values['help'] === true &&
+    !['profile', 'project', 'page', 'export'].includes(command)
+  ) {
     console.log(HELP);
     process.exit(0);
   }

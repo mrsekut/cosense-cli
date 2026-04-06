@@ -1,9 +1,34 @@
 import type { ParsedArgs } from '../lib/args.ts';
-import { getString } from '../lib/args.ts';
+import { getString, showHelp } from '../lib/args.ts';
 import { loadConfig, saveConfig } from '../lib/config.ts';
+
+const HELP = `cosense project - Manage project-to-profile mappings
+
+Usage: cosense project <subcommand> [options]
+
+Subcommands:
+  add <name> --profile <profile>   Register a project with a profile
+  list                             List all configured projects
+  remove <name>                    Unregister a project
+
+Examples:
+  cosense project add my-wiki --profile personal
+  cosense project list
+  cosense project remove my-wiki
+
+Output:
+  add:    {"ok": true, "data": {"project": "<name>", "profile": "<profile>"}}
+  list:   {"ok": true, "data": {"projects": [{"name": "...", "profile": "..."}]}}
+  remove: {"ok": true, "data": {"removed": "<name>"}}
+`;
 
 export async function projectCommand(parsed: ParsedArgs): Promise<void> {
   const subcommand = parsed.positionals[1];
+  showHelp(parsed.values, HELP);
+  if (!subcommand) {
+    console.log(HELP);
+    process.exit(0);
+  }
 
   switch (subcommand) {
     case 'add': {
@@ -55,7 +80,7 @@ export async function projectCommand(parsed: ParsedArgs): Promise<void> {
     }
 
     default:
-      console.error('Usage: cosense project <add|list|remove>');
+      console.log(HELP);
       process.exit(1);
   }
 }

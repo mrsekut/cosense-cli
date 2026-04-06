@@ -50,3 +50,14 @@ export const getNumber = (
 
 export const getBool = (values: ParsedArgs['values'], key: string): boolean =>
   values[key] !== undefined;
+
+export const showHelp = (
+  values: ParsedArgs['values'],
+  helpText: string,
+): boolean => {
+  if (values['help'] === true) {
+    console.log(helpText);
+    process.exit(0);
+  }
+  return false;
+};

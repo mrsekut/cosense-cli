@@ -1,8 +1,30 @@
 import type { ParsedArgs } from '../lib/args.ts';
-import { getString, getNumber, getBool } from '../lib/args.ts';
+import { getString, getNumber, getBool, showHelp } from '../lib/args.ts';
 import { output, success, error } from '../lib/output.ts';
 import { resolveOptions } from '../lib/config.ts';
 import { fetchPage, fetchPageList } from '../lib/cosense.ts';
+
+const HELP = `cosense export - Export pages for AI consumption
+
+Usage: cosense export <title> [options]
+       cosense export --all [options]
+
+Options:
+  --project <name>   Project name (required)
+  --depth <1|2>      Link follow depth (default: 1)
+                       1 = root page + 1-hop linked pages
+                       2 = root page + 1-hop + 2-hop linked pages
+  --all              Export all pages in the project
+
+Examples:
+  cosense export "My Page" --project my-wiki
+  cosense export "My Page" --project my-wiki --depth 2
+  cosense export --all --project my-wiki
+
+Output:
+  {"ok": true, "data": {"pages": [{"title": "...", "lines": ["..."]}]}}
+  With --all: {"ok": true, "data": {"count": 42, "pages": [...]}}
+`;
 
 type PageEntry = { title: string; lines: string[] };
 
@@ -23,6 +45,8 @@ const compact = <T>(arr: (T | null)[]): T[] =>
   arr.filter((x): x is T => x !== null);
 
 export async function exportCommand(parsed: ParsedArgs): Promise<void> {
+  showHelp(parsed.values, HELP);
+
   const project = getString(parsed.values, 'project');
   if (!project) {
     output(error('MISSING_ARGUMENT', '--project is required'));

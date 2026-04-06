@@ -1,11 +1,34 @@
 import type { ParsedArgs } from '../../lib/args.ts';
-import { getString, getBool } from '../../lib/args.ts';
+import { getString, getBool, showHelp } from '../../lib/args.ts';
 import { output, success, error } from '../../lib/output.ts';
 import { resolveOptions } from '../../lib/config.ts';
 import { appendLines } from '../../lib/cosense.ts';
 import { markdownToScrapbox } from '../../lib/markdown.ts';
 
+const HELP = `cosense page append - Append lines to an existing page
+
+Usage: cosense page append <title> --project <name> [options]
+
+Options:
+  --project <name>          Project name (required)
+  --body <text>             Text to append
+  --body-stdin              Read body from stdin
+  --input-format <format>   Input format: "md" (default) or "scrapbox"
+  --after <text>            Insert after the line matching this text
+
+Body is converted from Markdown to Scrapbox format by default.
+
+Examples:
+  cosense page append "My Page" --project my-wiki --body "New content"
+  echo "More text" | cosense page append "My Page" --project my-wiki --body-stdin
+  cosense page append "My Page" --project my-wiki --body "Inserted" --after "Section Title"
+
+Output:
+  {"ok": true, "data": {"title": "My Page", ...}}
+`;
+
 export async function pageAppend(parsed: ParsedArgs): Promise<void> {
+  showHelp(parsed.values, HELP);
   const title = parsed.positionals[2];
   if (!title) {
     output(
