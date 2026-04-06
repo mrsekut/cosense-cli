@@ -5,7 +5,6 @@ import { output, error } from './lib/output.ts';
 import { profileCommand } from './commands/profile.ts';
 import { pageCommand } from './commands/page/index.ts';
 import { exportCommand } from './commands/export.ts';
-import { linksCommand } from './commands/links.ts';
 
 const HELP = `cosense-cli - Cosense CLI for AI agents
 
@@ -15,7 +14,6 @@ Commands:
   profile   Manage profiles (set, list, remove)
   page      Page operations (get, list, search, create, append)
   export    Export pages for AI consumption
-  links     Explore page link structure
 
 Global Options:
   --profile <name>      Profile to use (default: "default")
@@ -42,9 +40,6 @@ async function main() {
         break;
       case 'export':
         await exportCommand(parsed);
-        break;
-      case 'links':
-        await linksCommand(parsed);
         break;
       default:
         output(error('UNKNOWN_COMMAND', `Unknown command: ${command}`));
