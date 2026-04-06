@@ -12,13 +12,13 @@ export async function profileCommand(parsed: ParsedArgs): Promise<void> {
         parsed.positionals[2] ??
         (await promptText(
           'Profile name',
-          'プロファイル名を入力してください (例: personal, work)',
+          'Enter a profile name (e.g. personal, work)',
         ));
       const sid =
         getString(parsed.values, 'sid') ??
         (await promptSecret(
           'connect.sid',
-          'CosenseのCookie中の connect.sid の値を入力してください',
+          'Enter the connect.sid value from your Cosense browser cookie',
         ));
 
       if (!name || !sid) {
