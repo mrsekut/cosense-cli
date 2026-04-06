@@ -1,190 +1,173 @@
-# cosense-cli — SKILL.md
+# cosense — SKILL.md
 
-> AI agent (特に Claude Code) が cosense-cli を操作するためのリファレンス
+> Reference for AI agents (especially Claude Code) to operate cosense-cli.
 
-## ツールの目的
+## Purpose
 
-Cosense (旧 Scrapbox) プロジェクトのページを CLI 経由で検索・取得・作成・追記するための AI agent 向けツール。JSON 出力をデフォルトとし、パイプラインや後続処理との統合を前提に設計されている。
+CLI tool for searching, fetching, creating, and appending pages in [Cosense](https://scrapbox.io/) (formerly Scrapbox) projects. Outputs JSON by default, designed for pipeline and agent integration.
 
-## 認証の前提
+## Authentication
 
-- Cosense の認証は **connect.sid (SID)** で行う
-- SID は profile に紐づけて `~/.config/cosense-cli/config.json` に保存される
-- project は profile（アカウント）に紐づけて登録する
-- **事前に `cosense profile set` と `cosense project add` を実行しておくこと**
-- SID なしでも public プロジェクトにはアクセスできる
-
-```bash
-# 1. プロファイル作成（人間が実行、初回のみ）
-cosense profile set personal --sid <connect.sid>
-
-# 2. プロジェクト登録（人間 or AI）
-cosense project add my-project --profile personal
-```
-
-## グローバルオプション
-
-| オプション         | 説明                                         | デフォルト |
-| ------------------ | -------------------------------------------- | ---------- |
-| `--project <name>` | プロジェクト名（page/export コマンドで必須） | —          |
-| `--help`           | ヘルプ表示                                   | —          |
-
-## コマンド一覧
-
-### profile — プロファイル管理（アカウント単位）
+- Cosense authenticates via **connect.sid (SID)**
+- SID is stored per profile in `~/.config/cosense-cli/config.json`
+- Projects are registered and linked to a profile (account)
+- **Run `bunx cosense profile set` and `bunx cosense project add` before use**
+- Public projects can be accessed without SID
 
 ```bash
-# プロファイル作成/更新（SIDのみ）
-cosense profile set <name> --sid <sid>
+# 1. Create a profile (human only, one-time setup)
+bunx cosense profile set personal --sid <connect.sid>
 
-# 一覧表示
-cosense profile list
-
-# 削除
-cosense profile remove <name>
+# 2. Register a project (human or AI)
+bunx cosense project add my-project --profile personal
 ```
 
-`profile set` は対話モードにも対応しており、引数を省略するとプロンプトで入力を求められる。
+## Global Options
 
-### project — プロジェクト管理
+| Option             | Description                                      | Default |
+| ------------------ | ------------------------------------------------ | ------- |
+| `--project <name>` | Project name (required for page/export commands) | —       |
+| `--help`           | Show help                                        | —       |
+
+## Commands
+
+### profile — Manage authentication profiles (account-level)
 
 ```bash
-# プロジェクトをプロファイルに紐づけて登録
-cosense project add <name> --profile <profile>
+# Create/update a profile (SID only)
+bunx cosense profile set <name> --sid <sid>
 
-# 一覧表示
-cosense project list
+# List all profiles
+bunx cosense profile list
 
-# 削除
-cosense project remove <name>
+# Remove a profile
+bunx cosense profile remove <name>
 ```
 
-### page get — ページ取得
+`profile set` supports interactive mode — omit arguments to be prompted.
+
+### project — Manage projects
 
 ```bash
-cosense page get <title> --project <name>
+# Register a project and link it to a profile
+bunx cosense project add <name> --profile <profile>
+
+# List all registered projects
+bunx cosense project list
+
+# Remove a project
+bunx cosense project remove <name>
 ```
 
-**出力:** タイトル、本文行、リンク、関連ページ
-
-### page list — ページ一覧
+### page get — Fetch a page
 
 ```bash
-cosense page list --project <name> [--sort updated] [--limit 100] [--skip 0]
+bunx cosense page get <title> --project <name>
 ```
 
-**出力:** ページ数、ページ配列（タイトル、説明、更新日時、ビュー数、リンク数）
+**Output:** title, lines, links, related pages
 
-### page search — 全文検索
+### page list — List pages
 
 ```bash
-cosense page search <query> --project <name>
+bunx cosense page list --project <name> [--sort updated] [--limit 100] [--skip 0]
 ```
 
-query は複数語可。**出力:** クエリ、件数、マッチしたページ配列
+**Output:** count, array of pages (title, descriptions, updated, views, linked)
 
-### page create — ページ作成
+### page search — Full-text search
 
 ```bash
-cosense page create <title> --project <name> --body "# Markdown content"
-cosense page create <title> --project <name> --body-stdin --input-format md
-echo "content" | cosense page create <title> --project <name> --body-stdin
+bunx cosense page search <query> --project <name>
 ```
 
-- `--input-format md`（デフォルト）: Markdown → Scrapbox 記法に自動変換
-- `--input-format sb`: Scrapbox 記法をそのまま送信
-- **出力:** タイトル、commitId
+Multiple words allowed. **Output:** query, count, matched pages
 
-### page append — ページ追記
+### page create — Create a page
 
 ```bash
-cosense page append <title> --project <name> --body "追記内容"
-cosense page append <title> --project <name> --body "挿入内容" --after "この行の後に挿入"
+bunx cosense page create <title> --project <name> --body "# Markdown content"
+bunx cosense page create <title> --project <name> --body-stdin --input-format md
+echo "content" | bunx cosense page create <title> --project <name> --body-stdin
 ```
 
-- `--after`: 指定テキストを含む行の直後に挿入。見つからない場合は末尾に追記
-- input-format は create と同様
-- **出力:** タイトル、commitId
+- `--input-format md` (default): auto-converts Markdown to Scrapbox notation
+- `--input-format sb`: sends Scrapbox notation as-is
+- **Output:** title, url, commitId
 
-### export — ページエクスポート
+### page append — Append to a page
 
 ```bash
-# 単一ページ + 関連ページ
-cosense export <title> --project <name> [--depth 1|2]
-
-# 全ページ
-cosense export --all --project <name> [--depth 1|2]
+bunx cosense page append <title> --project <name> --body "appended content"
+bunx cosense page append <title> --project <name> --body "inserted" --after "insert after this line"
 ```
 
-- depth 1: 直接リンク先まで / depth 2: 2ホップ先まで（重複排除済み）
-- **出力:** ページ配列（タイトル + 本文行）
+- `--after`: inserts after the first line containing the given text. Falls back to end of page if not found.
+- input-format works the same as create
+- **Output:** title, url, commitId
 
-## 出力スキーマ
+### export — Export pages
 
-すべてのコマンドは統一されたレスポンス形式を返す:
+```bash
+# Single page + related pages
+bunx cosense export <title> --project <name> [--depth 1|2]
+
+# All pages
+bunx cosense export --all --project <name> [--depth 1|2]
+```
+
+- depth 1: direct links / depth 2: 2-hop links (deduplicated)
+- **Output:** array of pages (title + lines)
+
+## Output Schema
+
+All commands return a unified response format:
 
 ```jsonc
-// 成功時
-{ "ok": true, "data": { /* コマンド固有 */ } }
+// Success
+{ "ok": true, "data": { /* command-specific */ } }
 
-// エラー時
-{ "ok": false, "error": { "code": "ERROR_CODE", "message": "説明" } }
+// Error
+{ "ok": false, "error": { "code": "ERROR_CODE", "message": "description" } }
 ```
 
-プロセス終了コード: 成功 = 0, エラー = 1
+Exit code: success = 0, error = 1
 
-## 典型的なワークフロー
+## Typical Workflows
 
-### ページ検索 → 取得 → 追記
+### Search → Fetch → Append
 
 ```bash
-# 1. キーワードで検索
-cosense page search "議事録" --project my-project
+# 1. Search by keyword
+bunx cosense page search "meeting notes" --project my-project
 
-# 2. 見つかったページを取得
-cosense page get "2024-01-15 定例議事録" --project my-project
+# 2. Fetch the found page
+bunx cosense page get "2024-01-15 Weekly Meeting" --project my-project
 
-# 3. 内容を追記
-cosense page append "2024-01-15 定例議事録" --project my-project --body "## 追加メモ\n補足事項をここに記載"
+# 3. Append content
+bunx cosense page append "2024-01-15 Weekly Meeting" --project my-project --body "## Additional Notes\nSupplementary info here"
 ```
 
-### プロジェクト全体の把握
+### Explore an entire project
 
 ```bash
-# ページ一覧を取得
-cosense page list --project my-project --sort updated --limit 50
+# List recent pages
+bunx cosense page list --project my-project --sort updated --limit 50
 
-# 関連ページごとまとめてエクスポート
-cosense export "プロジェクト概要" --project my-project --depth 2
+# Export a page with all related context
+bunx cosense export "Project Overview" --project my-project --depth 2
 ```
 
-### 新規ページ作成（stdin 経由）
+### Create a page via stdin
 
 ```bash
-echo "# 見出し\n本文" | cosense page create "新しいページ" --project my-project --body-stdin
+echo "# Heading\nBody text" | bunx cosense page create "New Page" --project my-project --body-stdin
 ```
 
-## やってはいけないこと
+## Do NOT
 
-- **SID なしで private プロジェクトにアクセスしない** — 認証エラーになる。事前に `profile set` で SID を設定すること
-- **`--all` export を安易に使わない** — 全ページ取得するため、大規模プロジェクトではレスポンスが巨大になる
-- **`--after` の文字列を曖昧にしない** — 部分一致で最初にヒットした行の後に挿入されるため、一意に特定できる文字列を指定すること
-- **存在しないページに append しない** — ページが存在しない場合はエラーになる。先に `page get` で存在確認するか `page create` で作成すること
-- **未登録の project を指定しない** — `cosense project add` で事前に登録すること
-
-## SessionStart hook でのコンテキスト注入
-
-Claude Code の `.claude/settings.json` に以下を追加すると、セッション開始時にこの SKILL.md が自動的にコンテキストに注入される:
-
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "type": "command",
-        "command": "cat /path/to/cosense-cli/SKILL.md"
-      }
-    ]
-  }
-}
-```
+- **Access private projects without SID** — results in auth error. Set up with `profile set` first.
+- **Use `--all` export carelessly** — fetches all pages; response can be very large for big projects.
+- **Use vague `--after` strings** — partial match hits the first matching line. Use a unique string.
+- **Append to nonexistent pages** — results in error. Check with `page get` first or use `page create`.
+- **Specify unregistered projects** — register with `cosense project add` first.

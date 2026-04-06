@@ -1,5 +1,5 @@
 {
-  "name": "cosense-cli",
+  "name": "cosense",
   "module": "index.ts",
   "type": "module",
   "private": true,
