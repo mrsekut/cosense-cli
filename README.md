@@ -53,5 +53,5 @@ npx skills add mrsekut/cosense-cli
 
 ## Documentation
 
-- [SKILL.md](./SKILL.md) — AI agent reference
+- [SKILL.md](./skills/cosense/SKILL.md) — AI agent reference
 - [AGENT_INSTRUCTIONS.md](./AGENT_INSTRUCTIONS.md) — Detailed agent integration spec
