@@ -1,25 +1,54 @@
 import type { ParsedArgs } from '../lib/args.ts';
 import { getString } from '../lib/args.ts';
 import { loadConfig, saveConfig } from '../lib/config.ts';
+import { validateConnection } from '../lib/cosense.ts';
+import { promptText, promptSecret, promptConfirm } from '../lib/prompt.ts';
 
 export async function profileCommand(parsed: ParsedArgs): Promise<void> {
   const subcommand = parsed.positionals[1];
 
   switch (subcommand) {
     case 'set': {
-      const name = parsed.positionals[2];
-      if (!name) {
-        console.error(
-          'Usage: cosense profile set <name> --sid <sid> --project <project>',
-        );
+      const name =
+        parsed.positionals[2] ??
+        (await promptText(
+          'Profile name',
+          'プロファイル名を入力してください (例: main, work)',
+        ));
+      const sid =
+        getString(parsed.values, 'sid') ??
+        (await promptSecret(
+          'connect.sid',
+          'CosenseのCookie中の connect.sid の値を入力してください',
+        ));
+      const project =
+        getString(parsed.values, 'project') ??
+        (await promptText(
+          'Project',
+          'デフォルトのプロジェクト名を入力してください (例: help-jp)',
+        ));
+
+      if (!name || !sid || !project) {
+        console.error('name, sid, project はすべて必須です。');
         process.exit(1);
       }
-      const sid = getString(parsed.values, 'sid');
-      const project = getString(parsed.values, 'project');
-      if (!sid || !project) {
-        console.error('Both --sid and --project are required.');
-        process.exit(1);
+
+      const isTTY = process.stdin.isTTY ?? false;
+      const validation = await validateConnection(project, sid);
+      if (!validation.ok) {
+        const warning = `⚠ API接続に失敗しました: ${validation.message}`;
+        if (isTTY) {
+          process.stderr.write(`${warning}\n`);
+          const proceed = await promptConfirm('それでも保存しますか？');
+          if (!proceed) {
+            console.error('保存を中止しました。');
+            process.exit(1);
+          }
+        } else {
+          process.stderr.write(`${warning}\n`);
+        }
       }
+
       const config = await loadConfig();
       config.profiles[name] = { sid, defaultProject: project };
       await saveConfig(config);
@@ -54,9 +83,7 @@ export async function profileCommand(parsed: ParsedArgs): Promise<void> {
     }
 
     default:
-      console.error(
-        'Usage: cosense profile <set|list|remove>',
-      );
+      console.error('Usage: cosense profile <set|list|remove>');
       process.exit(1);
   }
 }

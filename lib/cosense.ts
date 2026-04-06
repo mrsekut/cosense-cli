@@ -115,6 +115,32 @@ export async function createPage(
   return { commitId: unwrapOk(result) };
 }
 
+/**
+ * Validate API connectivity by attempting a lightweight listPages call.
+ * Returns { ok: true } on success, { ok: false, message: string } on failure.
+ */
+export async function validateConnection(
+  project: string,
+  sid: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const result = await listPages(project, { ...baseOpts(sid), limit: 1 });
+    if (isErr(result)) {
+      const err = unwrapErr(result);
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'name' in err
+            ? `${(err as { name: string }).name}: ${(err as { message?: string }).message ?? ''}`
+            : String(err);
+      return { ok: false, message: msg };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 function toError(err: unknown): Error {
   if (err instanceof Error) return err;
   if (typeof err === 'object' && err !== null && 'name' in err) {
