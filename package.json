@@ -1,6 +1,6 @@
 {
   "name": "cosense",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI tool for Cosense (formerly Scrapbox) — search, fetch, create, and append pages. Designed for AI agent integration.",
   "module": "src/index.ts",
   "type": "module",
