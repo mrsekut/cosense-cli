@@ -1,6 +1,7 @@
 import type { ParsedArgs } from '../args.ts';
 import { getString, showHelp } from '../args.ts';
 import { loadConfig, saveConfig } from '../config.ts';
+import { validateConnection } from '../cosense.ts';
 
 const HELP = `cosense project - Manage project-to-profile mappings
 
@@ -45,6 +46,13 @@ export async function projectCommand(parsed: ParsedArgs): Promise<void> {
         console.error(
           `Profile "${profile}" not found. Run: cosense profile set ${profile} --sid <sid>`,
         );
+        process.exit(1);
+      }
+
+      const sid = config.profiles[profile].sid;
+      const check = await validateConnection(name, sid);
+      if (!check.ok) {
+        console.error(`Project "${name}" is not accessible: ${check.message}`);
         process.exit(1);
       }
 
