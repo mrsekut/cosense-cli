@@ -27,13 +27,16 @@ bunx cosense profile set personal --sid <connect.sid>
 
 # 2. Register a project (human or AI)
 bunx cosense project add my-project --profile personal
+
+# 2b. Register a read-only project (writes are blocked)
+bunx cosense project add ref-project --profile personal --readonly
 ```
 
 ## Global Options
 
 | Option             | Description                                      | Default |
 | ------------------ | ------------------------------------------------ | ------- |
-| `--project <name>` | Project name (required for page/export commands) | —       |
+| `--project <name>` | Project name (required for page/search commands) | —       |
 | `--help`           | Show help                                        | —       |
 
 ## Commands
@@ -57,7 +60,10 @@ bunx cosense profile remove <name>
 
 ```bash
 # Register a project and link it to a profile
-bunx cosense project add <name> --profile <profile>
+bunx cosense project add <name> --profile <profile> [--readonly]
+
+# Update project settings
+bunx cosense project update <name> [--readonly | --no-readonly]
 
 # List all registered projects
 bunx cosense project list
@@ -66,13 +72,33 @@ bunx cosense project list
 bunx cosense project remove <name>
 ```
 
+Connection is validated on `project add` — typos in project names are caught immediately.
+
+### search — Search pages and fetch their content
+
+```bash
+bunx cosense search <query> --project <name> [--limit <n>] [--depth <0|1|2>]
+```
+
+| Option    | Default | Description                                                  |
+| --------- | ------- | ------------------------------------------------------------ |
+| `--limit` | `5`     | Max number of matched pages to fetch content for             |
+| `--depth` | `0`     | `0` = matched pages only, `1` = + 1-hop links, `2` = + 2-hop |
+
+**Output:** query, array of pages (title + full lines content)
+
 ### page get — Fetch a page
 
 ```bash
-bunx cosense page get <title> --project <name>
+bunx cosense page get <title> --project <name> [--depth <0|1|2>]
 ```
 
-**Output:** title, lines, links, related pages
+| Option    | Default | Description                                                 |
+| --------- | ------- | ----------------------------------------------------------- |
+| `--depth` | `0`     | `0` = single page, `1` = + 1-hop links, `2` = + 2-hop links |
+
+**Output (depth 0):** title, lines, links, descriptions, relatedPages
+**Output (depth >= 1):** pages array (title + lines), deduplicated
 
 ### page list — List pages
 
@@ -81,14 +107,6 @@ bunx cosense page list --project <name> [--sort updated] [--limit 100] [--skip 0
 ```
 
 **Output:** count, array of pages (title, descriptions, updated, views, linked)
-
-### page search — Full-text search
-
-```bash
-bunx cosense page search <query> --project <name>
-```
-
-Multiple words allowed. **Output:** query, count, matched pages
 
 ### page create — Create a page
 
@@ -100,6 +118,7 @@ echo "content" | bunx cosense page create <title> --project <name> --body-stdin
 
 - `--input-format md` (default): auto-converts Markdown to Scrapbox notation
 - `--input-format sb`: sends Scrapbox notation as-is
+- **Blocked on read-only projects**
 - **Output:** title, url, commitId
 
 ### page append — Append to a page
@@ -111,20 +130,8 @@ bunx cosense page append <title> --project <name> --body "inserted" --after "ins
 
 - `--after`: inserts after the first line containing the given text. Falls back to end of page if not found.
 - input-format works the same as create
+- **Blocked on read-only projects**
 - **Output:** title, url, commitId
-
-### export — Export pages
-
-```bash
-# Single page + related pages
-bunx cosense export <title> --project <name> [--depth 1|2]
-
-# All pages
-bunx cosense export --all --project <name> [--depth 1|2]
-```
-
-- depth 1: direct links / depth 2: 2-hop links (deduplicated)
-- **Output:** array of pages (title + lines)
 
 ## Output Schema
 
@@ -142,39 +149,34 @@ Exit code: success = 0, error = 1
 
 ## Typical Workflows
 
-### Search → Fetch → Append
+### Search → Read related context
 
 ```bash
-# 1. Search by keyword
-bunx cosense page search "meeting notes" --project my-project
-
-# 2. Fetch the found page
-bunx cosense page get "2024-01-15 Weekly Meeting" --project my-project
-
-# 3. Append content
-bunx cosense page append "2024-01-15 Weekly Meeting" --project my-project --body "## Additional Notes\nSupplementary info here"
+# Search and fetch top 5 pages with 1-hop links
+bunx cosense search "authentication" --project my-project --limit 5 --depth 1
 ```
 
-### Explore an entire project
+### Fetch a specific page with context
 
 ```bash
-# List recent pages
-bunx cosense page list --project my-project --sort updated --limit 50
-
-# Export a page with all related context
-bunx cosense export "Project Overview" --project my-project --depth 2
+# Get a page and all its linked pages
+bunx cosense page get "Project Overview" --project my-project --depth 2
 ```
 
-### Create a page via stdin
+### Write content
 
 ```bash
-echo "# Heading\nBody text" | bunx cosense page create "New Page" --project my-project --body-stdin
+# Create a new page with Markdown
+cosense page create "Meeting Notes 2025-01-15" --project my-project --body "## Agenda\n- Item 1"
+
+# Append to existing page
+cosense page append "Daily Log" --project my-project --body "- Completed task X"
 ```
 
 ## Do NOT
 
 - **Access private projects without SID** — results in auth error. Set up with `profile set` first.
-- **Use `--all` export carelessly** — fetches all pages; response can be very large for big projects.
 - **Use vague `--after` strings** — partial match hits the first matching line. Use a unique string.
 - **Append to nonexistent pages** — results in error. Check with `page get` first or use `page create`.
 - **Specify unregistered projects** — register with `cosense project add` first.
+- **Write to read-only projects** — create/append are blocked. Use `project update --no-readonly` to change.

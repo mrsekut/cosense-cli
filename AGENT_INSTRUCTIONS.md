@@ -18,11 +18,16 @@ cosense profile set <name> --sid <session-id>
 
 # 2. Register projects to the profile (human or agent)
 cosense project add <project-name> --profile <name>
+
+# 2b. Register a read-only project
+cosense project add <project-name> --profile <name> --readonly
 ```
 
 The `sid` (session ID) is a browser cookie obtained from an authenticated Cosense session. Agents cannot perform this step autonomously.
 
 `profile set` supports interactive mode — when arguments are omitted, the user is prompted for input.
+
+Connection is validated on `project add` — typos in project names are caught immediately.
 
 ## Output Contract
 
@@ -58,17 +63,17 @@ All commands produce JSON output.
 
 ### Error Codes
 
-| Code                 | Cause                                                    |
-| -------------------- | -------------------------------------------------------- |
-| `UNKNOWN_COMMAND`    | Unrecognized command name                                |
-| `UNKNOWN_SUBCOMMAND` | Unrecognized subcommand for profile/project/page         |
-| `MISSING_ARGUMENT`   | Required positional argument or `--project` not provided |
-| `ERROR`              | Runtime/API error (check `message` for details)          |
+| Code               | Cause                                                    |
+| ------------------ | -------------------------------------------------------- |
+| `UNKNOWN_COMMAND`  | Unrecognized command name                                |
+| `MISSING_ARGUMENT` | Required positional argument or `--project` not provided |
+| `READONLY_PROJECT` | Write operation attempted on a read-only project         |
+| `ERROR`            | Runtime/API error (check `message` for details)          |
 
 ## Global Options
 
 ```
---project <name>      Project name (required for page/export commands)
+--project <name>      Project name (required for page/search commands)
 --help                Show help
 ```
 
@@ -115,18 +120,29 @@ cosense profile remove <name>
 
 ### project add
 
-Register a project and associate it with a profile.
+Register a project and associate it with a profile. Validates connectivity before saving.
 
 ```sh
-cosense project add <name> --profile <profile>
+cosense project add <name> --profile <profile> [--readonly]
 ```
 
 | Argument/Option | Required | Description                                 |
 | --------------- | -------- | ------------------------------------------- |
 | `<name>`        | yes      | Project name (as it appears in Cosense URL) |
 | `--profile`     | yes      | Profile to use for authentication           |
+| `--readonly`    | no       | Mark project as read-only                   |
 
-**Response data:** `{ "project": string, "profile": string }`
+**Response data:** `{ "project": string, "profile": string, "readonly": boolean }`
+
+### project update
+
+Update settings for an existing project.
+
+```sh
+cosense project update <name> [--readonly | --no-readonly]
+```
+
+**Response data:** `{ "project": string, "profile": string, "readonly": boolean }`
 
 ### project list
 
@@ -138,7 +154,9 @@ cosense project list
 
 ```json
 {
-  "projects": [{ "name": "my-project", "profile": "personal" }]
+  "projects": [
+    { "name": "my-project", "profile": "personal", "readonly": false }
+  ]
 }
 ```
 
@@ -150,15 +168,41 @@ cosense project remove <name>
 
 **Response data:** `{ "removed": string }`
 
+### search
+
+Search pages by keyword and fetch their full content. This is the primary command for information retrieval.
+
+```sh
+cosense search <query> --project <name> [--limit <n>] [--depth <0|1|2>]
+```
+
+| Option    | Default | Description                                                  |
+| --------- | ------- | ------------------------------------------------------------ |
+| `--limit` | `5`     | Max number of matched pages to fetch content for             |
+| `--depth` | `0`     | `0` = matched pages only, `1` = + 1-hop links, `2` = + 2-hop |
+
+**Response data:**
+
+```json
+{
+  "query": "search term",
+  "pages": [{ "title": "Page Title", "lines": ["line1", "line2"] }]
+}
+```
+
 ### page get
 
 Fetch a single page with content and link metadata.
 
 ```sh
-cosense page get <title> --project <name>
+cosense page get <title> --project <name> [--depth <0|1|2>]
 ```
 
-**Response data:**
+| Option    | Default | Description                                                 |
+| --------- | ------- | ----------------------------------------------------------- |
+| `--depth` | `0`     | `0` = single page, `1` = + 1-hop links, `2` = + 2-hop links |
+
+**Response data (depth 0):**
 
 ```json
 {
@@ -170,6 +214,17 @@ cosense page get <title> --project <name>
     "links1hop": [{ "title": "related-page" }],
     "links2hop": [{ "title": "distant-page" }]
   }
+}
+```
+
+**Response data (depth >= 1):**
+
+```json
+{
+  "pages": [
+    { "title": "Root", "lines": ["..."] },
+    { "title": "Related", "lines": ["..."] }
+  ]
 }
 ```
 
@@ -204,27 +259,10 @@ cosense page list --project <name> [--sort <field>] [--limit <n>] [--skip <n>]
 }
 ```
 
-### page search
-
-Full-text search across pages.
-
-```sh
-cosense page search <query> --project <name>
-```
-
-**Response data:**
-
-```json
-{
-  "query": "search term",
-  "count": 5,
-  "pages": [{ "title": "Page Title", "words": 100, "lines": 5 }]
-}
-```
-
 ### page create
 
 Create a new page. Body can be provided via `--body` or piped via `--body-stdin`.
+Blocked on read-only projects.
 
 ```sh
 cosense page create <title> --project <name> --body <text> [--input-format <md|sb>]
@@ -237,11 +275,12 @@ cosense page create <title> --project <name> --body-stdin [--input-format <md|sb
 | `--body-stdin`   | false   | Read content from stdin                                   |
 | `--input-format` | `md`    | `md` (Markdown, auto-converted) or `sb` (Scrapbox native) |
 
-**Response data:** `{ "title": string, "commitId": string }`
+**Response data:** `{ "title": string, "url": string, "commitId": string }`
 
 ### page append
 
 Append content to an existing page.
+Blocked on read-only projects.
 
 ```sh
 cosense page append <title> --project <name> --body <text> [--after <text>] [--input-format <md|sb>]
@@ -255,58 +294,33 @@ cosense page append <title> --project <name> --body-stdin [--after <text>] [--in
 | `--input-format` | `md`    | `md` or `sb`                                                                                   |
 | `--after`        | (end)   | Substring match; insert after the first matching line. Falls back to end of page if not found. |
 
-**Response data:** `{ "title": string, "commitId": string }`
-
-### export
-
-Export page content with related pages. Use for bulk retrieval.
-
-```sh
-cosense export <title> --project <name> [--depth <1|2>]
-cosense export --all --project <name> [--depth <1|2>]
-```
-
-| Option    | Default | Description                                                |
-| --------- | ------- | ---------------------------------------------------------- |
-| `--depth` | `1`     | `1` = root + 1-hop links, `2` = root + 1-hop + 2-hop links |
-| `--all`   | false   | Export all pages in the project (ignores title)            |
-
-**Response data:**
-
-```json
-{
-  "pages": [
-    { "title": "Root", "lines": ["..."] },
-    { "title": "Related", "lines": ["..."] }
-  ]
-}
-```
+**Response data:** `{ "title": string, "url": string, "commitId": string }`
 
 ## Error Recovery
 
-| Symptom                         | Error code         | Resolution                                                                    |
-| ------------------------------- | ------------------ | ----------------------------------------------------------------------------- |
-| `--project is required`         | `MISSING_ARGUMENT` | Add `--project <name>` to the command                                         |
-| `Project "X" is not registered` | `ERROR`            | Run `cosense project add X --profile <profile>`                               |
-| `Profile "X" not found`         | `ERROR`            | Run `cosense profile set X --sid <sid>`                                       |
-| `Unknown command: X`            | `UNKNOWN_COMMAND`  | Check spelling; valid commands: `profile`, `project`, `page`, `export`        |
-| `MISSING_ARGUMENT`              | `MISSING_ARGUMENT` | Check required positional arguments                                           |
-| API/network failure             | `ERROR`            | Retry; if persistent, the `sid` may have expired (human must re-authenticate) |
-| Empty response                  | -                  | Page may not exist; verify title with `page search` first                     |
+| Symptom                         | Error code         | Resolution                                                             |
+| ------------------------------- | ------------------ | ---------------------------------------------------------------------- |
+| `--project is required`         | `MISSING_ARGUMENT` | Add `--project <name>` to the command                                  |
+| `Project "X" is not registered` | `ERROR`            | Run `cosense project add X --profile <profile>`                        |
+| `Profile "X" not found`         | `ERROR`            | Run `cosense profile set X --sid <sid>`                                |
+| `Project "X" is read-only`      | `READONLY_PROJECT` | Use `cosense project update X --no-readonly` to allow writes           |
+| `Unknown command: X`            | `UNKNOWN_COMMAND`  | Check spelling; valid commands: `profile`, `project`, `page`, `search` |
+| API/network failure             | `ERROR`            | Retry; if persistent, the `sid` may have expired (human must re-auth)  |
+| Empty response                  | -                  | Page may not exist; verify title with `search` first                   |
 
 ## Recipes
 
 ### Information gathering
 
 ```sh
-# Search for pages about a topic
-cosense page search "authentication" --project my-project
+# Search and get full content of top matches with linked pages
+cosense search "authentication" --project my-project --limit 5 --depth 1
 
-# Get full page content
-cosense page get "authentication" --project my-project
+# Get a specific page with all related context
+cosense page get "Project Overview" --project my-project --depth 2
 
-# Export a page and all related context
-cosense export "authentication" --project my-project --depth 2
+# List recent pages
+cosense page list --project my-project --sort updated --limit 50
 ```
 
 ### Writing content
@@ -328,17 +342,6 @@ cosense page append "Project Plan" --project my-project --body "- New subtask" -
 cosense page create "New Page" --project my-project --body "[link] some [bold text]" --input-format sb
 ```
 
-### Bulk operations
-
-```sh
-# Export entire project
-cosense export --all --project my-project
-
-# Paginated page listing
-cosense page list --project my-project --limit 50 --skip 0 --sort updated
-cosense page list --project my-project --limit 50 --skip 50 --sort updated
-```
-
 ## Configuration
 
 Config file location: `~/.config/cosense-cli/config.json`
@@ -351,9 +354,10 @@ Structure:
     "personal": { "sid": "..." }
   },
   "projects": {
-    "my-project": { "profile": "personal" }
+    "my-project": { "profile": "personal" },
+    "ref-project": { "profile": "personal", "readonly": true }
   }
 }
 ```
 
-Agents should treat this file as read-only. Use `profile` and `project` subcommands to modify it.
+Agents should treat this file as read-only. Use `profile`, `project` subcommands to modify it.
