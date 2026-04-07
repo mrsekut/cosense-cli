@@ -7,6 +7,7 @@ export type Profile = {
 
 export type ProjectEntry = {
   profile: string;
+  readonly?: boolean;
 };
 
 export type Config = {
@@ -77,7 +78,7 @@ export async function getProfile(name: string): Promise<Profile | undefined> {
 
 export async function resolveOptions(args: {
   project: string;
-}): Promise<{ sid?: string; project: string }> {
+}): Promise<{ sid?: string; project: string; readonly: boolean }> {
   const config = await loadConfig();
   const projectEntry = config.projects[args.project];
   if (!projectEntry) {
@@ -91,5 +92,9 @@ export async function resolveOptions(args: {
       `Profile "${projectEntry.profile}" not found. Run: cosense profile set ${projectEntry.profile} --sid <sid>`,
     );
   }
-  return { sid: profile.sid, project: args.project };
+  return {
+    sid: profile.sid,
+    project: args.project,
+    readonly: projectEntry.readonly ?? false,
+  };
 }

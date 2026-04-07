@@ -20,6 +20,8 @@ export const parseArgs = (argv: string[]): ParsedArgs => {
       sort: { type: 'string' },
       limit: { type: 'string' },
       skip: { type: 'string' },
+      readonly: { type: 'boolean' },
+      'no-readonly': { type: 'boolean' },
       depth: { type: 'string' },
       all: { type: 'boolean' },
     },

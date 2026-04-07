@@ -46,6 +46,10 @@ export async function pageAppend(parsed: ParsedArgs): Promise<void> {
     return;
   }
   const opts = await resolveOptions({ project });
+  if (opts.readonly) {
+    output(error('READONLY_PROJECT', `Project "${project}" is read-only`));
+    return;
+  }
 
   const rawBody = getBool(parsed.values, 'body-stdin')
     ? await Bun.stdin.text()
