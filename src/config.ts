@@ -1,19 +1,20 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import * as v from 'valibot';
 
-export type Profile = {
-  sid: string;
-};
+const ProfileSchema = v.object({ sid: v.string() });
+const ProjectEntrySchema = v.object({
+  profile: v.string(),
+  readonly: v.optional(v.boolean()),
+});
+const ConfigSchema = v.object({
+  profiles: v.record(v.string(), ProfileSchema),
+  projects: v.record(v.string(), ProjectEntrySchema),
+});
 
-export type ProjectEntry = {
-  profile: string;
-  readonly?: boolean;
-};
-
-export type Config = {
-  profiles: Record<string, Profile>;
-  projects: Record<string, ProjectEntry>;
-};
+export type Profile = v.InferOutput<typeof ProfileSchema>;
+export type ProjectEntry = v.InferOutput<typeof ProjectEntrySchema>;
+export type Config = v.InferOutput<typeof ConfigSchema>;
 
 const CONFIG_DIR = join(homedir(), '.config', 'cosense-cli');
 const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
@@ -22,47 +23,24 @@ export async function loadConfig(): Promise<Config> {
   try {
     const file = Bun.file(CONFIG_PATH);
     const raw = await file.json();
-    validateConfigFormat(raw);
-    return raw as Config;
+    return v.parse(ConfigSchema, withDefaults(raw));
   } catch (e) {
-    if (e instanceof ConfigFormatError) throw e;
+    if (e instanceof v.ValiError) {
+      throw new Error(
+        `Invalid config.json: ${e.message}\nDelete ~/.config/cosense-cli/config.json and re-configure.`,
+      );
+    }
     return { profiles: {}, projects: {} };
   }
 }
 
-class ConfigFormatError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ConfigFormatError';
-  }
-}
-
-function validateConfigFormat(raw: unknown): void {
-  if (typeof raw !== 'object' || raw === null) return;
+function withDefaults(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null) return raw;
   const obj = raw as Record<string, unknown>;
-
-  // Detect old format: profiles with defaultProject or sid at profile level with defaultProject
-  if (obj['profiles'] && typeof obj['profiles'] === 'object') {
-    for (const [name, profile] of Object.entries(
-      obj['profiles'] as Record<string, unknown>,
-    )) {
-      if (
-        typeof profile === 'object' &&
-        profile !== null &&
-        'defaultProject' in profile
-      ) {
-        throw new ConfigFormatError(
-          `Outdated config.json format: profile "${name}" contains defaultProject.\n` +
-            `Delete ~/.config/cosense-cli/config.json and re-configure with: cosense profile set / cosense project add`,
-        );
-      }
-    }
-  }
-
-  // Ensure projects key exists if profiles exists
   if (obj['profiles'] && !obj['projects']) {
-    (obj as Record<string, unknown>)['projects'] = {};
+    return { ...obj, projects: {} };
   }
+  return obj;
 }
 
 export async function saveConfig(config: Config): Promise<void> {
