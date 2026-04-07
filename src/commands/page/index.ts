@@ -1,6 +1,4 @@
 import type { ParsedArgs } from '../../args.ts';
-import { showHelp } from '../../args.ts';
-import { output, error } from '../../output.ts';
 import { pageGet } from './get.ts';
 import { pageList } from './list.ts';
 import { pageSearch } from './search.ts';

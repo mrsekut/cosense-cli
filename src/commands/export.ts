@@ -112,7 +112,10 @@ async function exportAll(
   project: string,
   sid: string | undefined,
 ): Promise<void> {
-  const result = await fetchPageList(project, { limit: 1000, sid });
+  const result = await fetchPageList(project, {
+    limit: 1000,
+    ...(sid != null ? { sid } : {}),
+  });
 
   const pages = compact(
     await Promise.all(

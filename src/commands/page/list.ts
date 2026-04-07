@@ -32,11 +32,14 @@ export async function pageList(parsed: ParsedArgs): Promise<void> {
   }
   const opts = await resolveOptions({ project });
 
+  const sort = getString(parsed.values, 'sort');
+  const limit = getNumber(parsed.values, 'limit');
+  const skip = getNumber(parsed.values, 'skip');
   const data = await fetchPageList(opts.project, {
-    sort: getString(parsed.values, 'sort'),
-    limit: getNumber(parsed.values, 'limit'),
-    skip: getNumber(parsed.values, 'skip'),
-    sid: opts.sid,
+    ...(sort != null ? { sort } : {}),
+    ...(limit != null ? { limit } : {}),
+    ...(skip != null ? { skip } : {}),
+    ...(opts.sid != null ? { sid: opts.sid } : {}),
   });
 
   output(success(data));

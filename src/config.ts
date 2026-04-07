@@ -42,9 +42,9 @@ function validateConfigFormat(raw: unknown): void {
   const obj = raw as Record<string, unknown>;
 
   // Detect old format: profiles with defaultProject or sid at profile level with defaultProject
-  if (obj.profiles && typeof obj.profiles === 'object') {
+  if (obj['profiles'] && typeof obj['profiles'] === 'object') {
     for (const [name, profile] of Object.entries(
-      obj.profiles as Record<string, unknown>,
+      obj['profiles'] as Record<string, unknown>,
     )) {
       if (
         typeof profile === 'object' &&
@@ -60,8 +60,8 @@ function validateConfigFormat(raw: unknown): void {
   }
 
   // Ensure projects key exists if profiles exists
-  if (obj.profiles && !obj.projects) {
-    (obj as Record<string, unknown>).projects = {};
+  if (obj['profiles'] && !obj['projects']) {
+    (obj as Record<string, unknown>)['projects'] = {};
   }
 }
 

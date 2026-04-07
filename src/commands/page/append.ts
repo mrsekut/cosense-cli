@@ -62,9 +62,10 @@ export async function pageAppend(parsed: ParsedArgs): Promise<void> {
       : rawBody;
 
   const lines = body.split('\n');
+  const after = getString(parsed.values, 'after');
   const data = await appendLines(opts.project, title, lines, {
-    after: getString(parsed.values, 'after'),
-    sid: opts.sid,
+    ...(after != null ? { after } : {}),
+    ...(opts.sid != null ? { sid: opts.sid } : {}),
   });
   const url = `https://scrapbox.io/${encodeURIComponent(opts.project)}/${encodeURIComponent(title)}`;
   output(success({ title, url, ...data }));
