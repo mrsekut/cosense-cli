@@ -23,7 +23,7 @@ export const parseArgs = (argv: string[]): ParsedArgs => {
       readonly: { type: 'boolean' },
       'no-readonly': { type: 'boolean' },
       depth: { type: 'string' },
-      all: { type: 'boolean' },
+      query: { type: 'string' },
     },
     allowPositionals: true,
     strict: false,

@@ -1,29 +1,25 @@
 import type { ParsedArgs } from '../args.ts';
-import { getString, getNumber, getBool, showHelp } from '../args.ts';
+import { getString, getNumber, showHelp } from '../args.ts';
 import { output, success, error } from '../output.ts';
 import { resolveOptions } from '../config.ts';
-import { fetchPage, fetchPageList } from '../cosense.ts';
+import { fetchPage } from '../cosense.ts';
 
 const HELP = `cosense export - Export pages for AI consumption
 
 Usage: cosense export <title> [options]
-       cosense export --all [options]
 
 Options:
   --project <name>   Project name (required)
   --depth <1|2>      Link follow depth (default: 1)
                        1 = root page + 1-hop linked pages
                        2 = root page + 1-hop + 2-hop linked pages
-  --all              Export all pages in the project
 
 Examples:
   cosense export "My Page" --project my-wiki
   cosense export "My Page" --project my-wiki --depth 2
-  cosense export --all --project my-wiki
 
 Output:
   {"ok": true, "data": {"pages": [{"title": "...", "lines": ["..."]}]}}
-  With --all: {"ok": true, "data": {"count": 42, "pages": [...]}}
 `;
 
 type PageEntry = { title: string; lines: string[] };
@@ -56,18 +52,10 @@ export async function exportCommand(parsed: ParsedArgs): Promise<void> {
 
   const depth = getNumber(parsed.values, 'depth') ?? 1;
 
-  if (getBool(parsed.values, 'all')) {
-    await exportAll(opts.project, opts.sid);
-    return;
-  }
-
   const title = parsed.positionals[1];
   if (!title) {
     output(
-      error(
-        'MISSING_ARGUMENT',
-        'Usage: cosense export <title> [--depth 1|2] or cosense export --all',
-      ),
+      error('MISSING_ARGUMENT', 'Usage: cosense export <title> [--depth 1|2]'),
     );
     return;
   }
@@ -106,24 +94,4 @@ export async function exportCommand(parsed: ParsedArgs): Promise<void> {
 
   const pages = [rootPage, ...oneHopPages, ...twoHopPages];
   output(success({ pages }));
-}
-
-async function exportAll(
-  project: string,
-  sid: string | undefined,
-): Promise<void> {
-  const result = await fetchPageList(project, {
-    limit: 1000,
-    ...(sid != null ? { sid } : {}),
-  });
-
-  const pages = compact(
-    await Promise.all(
-      result.pages.map(pageSummary =>
-        tryFetchPage(project, pageSummary.title, sid),
-      ),
-    ),
-  );
-
-  output(success({ count: pages.length, pages }));
 }
