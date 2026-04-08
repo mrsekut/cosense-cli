@@ -1,58 +1,38 @@
 # cosense-cli
 
-CLI tool for [Cosense](https://scrapbox.io/) (formerly Scrapbox). Designed for AI agent integration with structured JSON output.
+CLI tool for [Cosense](https://scrapbox.io/) (formerly Scrapbox). AI agent integration with structured JSON output.
 
-## Usage
+Human setup is only the initial authentication — after that, just load the skill and let the AI handle the rest.
 
-```bash
-bunx cosense
-```
+## Features
 
-## Setup
+- Search pages with full-text content fetching
+- Fetch pages with related pages traversal (1-hop, 2-hop links)
+- Create and append pages with Markdown → Scrapbox auto-conversion
+- Read-only project support for safe reference access
+- All output is structured JSON
 
-```bash
-# 1. Create a profile with your Cosense session ID
-cosense profile set personal --sid <connect.sid>
-
-# 2. Register projects to the profile
-cosense project add my-project --profile personal
-
-# Register a read-only project
-cosense project add ref-project --profile personal --readonly
-```
-
-## Commands
-
-```bash
-# Search pages and fetch their content
-cosense search "keyword" --project my-project
-cosense search "keyword" --project my-project --limit 3 --depth 1
-
-# Get a page
-cosense page get "Page Title" --project my-project
-
-# Get a page with related pages
-cosense page get "Page Title" --project my-project --depth 2
-
-# List pages
-cosense page list --project my-project --sort updated --limit 50
-
-# Create a page
-cosense page create "New Page" --project my-project --body "# Hello"
-
-# Append to a page
-cosense page append "Existing Page" --project my-project --body "Additional content"
-```
-
-## Claude Code Skill
-
-To install as a Claude Code skill:
+## Usage (Agent Skill)
 
 ```bash
 npx skills add mrsekut/cosense-cli
 ```
 
-## Documentation
+This installs a [skill](./skills/cosense-cli/SKILL.md) that teaches Claude Code how to search, read, create, and append Cosense pages. You don't need to learn the CLI commands yourself.
 
-- [SKILL.md](./skills/cosense-cli/SKILL.md) — AI agent reference
-- [AGENT_INSTRUCTIONS.md](./AGENT_INSTRUCTIONS.md) — Detailed agent integration spec
+## Setup
+
+One-time setup by a human:
+
+```bash
+# 1. Create a profile with your Cosense session ID
+bunx cosense profile set
+
+# 2. Register projects to the profile
+bunx cosense project add my-project --profile personal
+
+# Register a read-only project (writes are blocked)
+bunx cosense project add ref-project --profile personal --readonly
+```
+
+After this, the AI agent handles everything through the skill.
