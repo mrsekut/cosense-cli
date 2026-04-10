@@ -1,6 +1,9 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import * as v from 'valibot';
+import { validateConnection } from './cosense';
+import { listPages } from '@cosense/std/rest';
+import { isErr, unwrapErr } from 'option-t/plain_result';
 
 const ProfileSchema = v.object({ sid: v.string() });
 const ProjectEntrySchema = v.object({
@@ -49,6 +52,47 @@ export async function saveConfig(config: Config): Promise<void> {
   await Bun.write(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n');
 }
 
+async function resolveUnregisteredProject(
+  config: Config,
+  project: string,
+): Promise<{ sid?: string; project: string; readonly: boolean }> {
+  // Try public access first
+  const publicResult = await listPages(project, { limit: 1 });
+  if (!isErr(publicResult)) {
+    return { project, readonly: true };
+  }
+
+  const err = unwrapErr(publicResult);
+  const errName =
+    typeof err === 'object' && err !== null && 'name' in err
+      ? (err as { name: string }).name
+      : '';
+
+  if (errName === 'NotFoundError') {
+    throw new Error(`Project "${project}" does not exist.`);
+  }
+
+  // 401: try each profile
+  for (const [profileName, profile] of Object.entries(config.profiles)) {
+    const result = await validateConnection(project, profile.sid);
+    if (result.ok) {
+      // Auto-register for next time
+      config.projects[project] = { profile: profileName };
+      await saveConfig(config);
+      return { sid: profile.sid, project, readonly: false };
+    }
+  }
+
+  if (Object.keys(config.profiles).length === 0) {
+    throw new Error(
+      `Project "${project}" requires authentication. Run: cosense profile set <name> --sid <sid>`,
+    );
+  }
+  throw new Error(
+    `Project "${project}" is not accessible with any registered profile.`,
+  );
+}
+
 export async function getProfile(name: string): Promise<Profile | undefined> {
   const config = await loadConfig();
   return config.profiles[name];
@@ -60,9 +104,7 @@ export async function resolveOptions(args: {
   const config = await loadConfig();
   const projectEntry = config.projects[args.project];
   if (!projectEntry) {
-    throw new Error(
-      `Project "${args.project}" is not registered. Run: cosense project add ${args.project} --profile <profile-name>`,
-    );
+    return resolveUnregisteredProject(config, args.project);
   }
   const profile = config.profiles[projectEntry.profile];
   if (!profile) {

@@ -17,20 +17,23 @@ CLI tool for searching, fetching, creating, and appending pages in [Cosense](htt
 
 - Cosense authenticates via **connect.sid (SID)**
 - SID is stored per profile in `~/.config/cosense-cli/config.json`
-- Projects are registered and linked to a profile (account)
-- **Run `bunx cosense profile set` and `bunx cosense project add` before use**
-- Public projects can be accessed without SID
+- **Human setup: `bunx cosense profile set` only** — project registration is handled by AI
+- Unregistered projects are accessed without SID (works for public projects)
 
 ```bash
-# 1. Create a profile (human only, one-time setup)
+# Create a profile (human only, one-time setup)
 bunx cosense profile set personal --sid <connect.sid>
-
-# 2. Register a project (human or AI)
-bunx cosense project add my-project --profile personal
-
-# 2b. Register a read-only project (writes are blocked)
-bunx cosense project add ref-project --profile personal --readonly
 ```
+
+## Project Resolution
+
+Unregistered projects are auto-resolved on first access:
+
+1. Public project → works immediately without SID
+2. Private project → CLI tries each registered profile and auto-registers on success
+3. Non-existent project → clear error
+
+No manual `project add` needed. Just use `--project <name>` directly.
 
 ## Global Options
 
@@ -178,5 +181,4 @@ cosense page append "Daily Log" --project my-project --body "- Completed task X"
 - **Access private projects without SID** — results in auth error. Set up with `profile set` first.
 - **Use vague `--after` strings** — partial match hits the first matching line. Use a unique string.
 - **Append to nonexistent pages** — results in error. Check with `page get` first or use `page create`.
-- **Specify unregistered projects** — register with `cosense project add` first.
 - **Write to read-only projects** — create/append are blocked. Use `project update --no-readonly` to change.

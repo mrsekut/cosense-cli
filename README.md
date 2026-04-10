@@ -25,14 +25,8 @@ This installs a [skill](./skills/cosense-cli/SKILL.md) that teaches Claude Code 
 One-time setup by a human:
 
 ```bash
-# 1. Create a profile with your Cosense session ID
+# Create a profile with your Cosense session ID
 bunx cosense profile set
-
-# 2. Register projects to the profile
-bunx cosense project add my-project --profile personal
-
-# Register a read-only project (writes are blocked)
-bunx cosense project add ref-project --profile personal --readonly
 ```
 
-After this, the AI agent handles everything through the skill.
+Public projects work without any setup. For private projects you participate in, the AI agent will auto-detect and register the project using your profile.
