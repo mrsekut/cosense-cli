@@ -3,8 +3,8 @@ name: cosense-cli
 description: >
   CLI tool for Cosense (formerly Scrapbox) page operations.
   Search, fetch, create, and append pages via structured JSON output.
-  Use when the user mentions "Cosense", "Scrapbox", "cosense", or asks to
-  read/write/search wiki pages.
+  Use when the user mentions "Cosense", "Scrapbox", or asks to read/write/search wiki pages.
+  Also trigger when a scrapbox.io URL is pasted (e.g. https://scrapbox.io/project/page).
 ---
 
 > Reference for AI agents (especially Claude Code) to operate cosense-cli.
